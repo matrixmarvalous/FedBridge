@@ -21,7 +21,7 @@ keywords:
   - reproducibility
 preferred-citation:
   type: generic
-  title: "Bridge reinforcement learning enables collaborative learning of personalized policies across heterogeneous environments"
+  title: "Towards Personalized Collaborative Reinforcement Learning with Decoupled Bridge Policy Distillation"
   authors:
     - family-names: Wang
       given-names: Dazhong

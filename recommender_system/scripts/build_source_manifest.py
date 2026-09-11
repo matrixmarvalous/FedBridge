@@ -27,8 +27,8 @@ def load_source_renames(path: Path = RENAME_TABLE) -> dict[str, str]:
     with path.open(newline="", encoding="utf-8") as handle:
         rows = csv.DictReader(handle)
         mapping = {row["release_path"]: row["source_path"] for row in rows}
-    if len(mapping) != 4:
-        raise ValueError(f"expected four explicit source renames in {path}")
+    if len(mapping) != 8:
+        raise ValueError(f"expected eight explicit source renames in {path}")
     return mapping
 
 

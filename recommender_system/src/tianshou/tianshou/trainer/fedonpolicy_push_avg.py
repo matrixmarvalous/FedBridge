@@ -5,11 +5,11 @@ import numpy as np
 from tianshou.data import Collector
 from tianshou.policy import BasePolicy
 from tianshou.trainer.base import BaseTrainer
-from tianshou.trainer.pushpullbase import PushPullBaseTrainer
+from tianshou.trainer.push_avg_base import PushAvgBaseTrainer
 from tianshou.utils import BaseLogger, LazyLogger
 
 
-class FedOnpolicy_PushPullTrainer(PushPullBaseTrainer):
+class FedOnpolicy_PushAvgTrainer(PushAvgBaseTrainer):
     """Create an iterator wrapper for on-policy training procedure.
 
     :param policy: an instance of the :class:`~tianshou.policy.BasePolicy` class.
@@ -157,14 +157,14 @@ class FedOnpolicy_PushPullTrainer(PushPullBaseTrainer):
         self.log_update_data(data, losses)
 
 
-def fedonpolicy_pushpulltrainer(*args, **kwargs) -> Dict[str, Union[float, str]]:  # type: ignore
+def fedonpolicy_push_avg_trainer(*args, **kwargs) -> Dict[str, Union[float, str]]:  # type: ignore
     """Wrapper for OnpolicyTrainer run method.
 
     It is identical to ``OnpolicyTrainer(...).run()``.
 
     :return: See :func:`~tianshou.trainer.gather_info`.
     """
-    return FedOnpolicy_PushPullTrainer(*args, **kwargs).run()
+    return FedOnpolicy_PushAvgTrainer(*args, **kwargs).run()
 
 
-fedonpolicy_pushpulltrainer_iter = FedOnpolicy_PushPullTrainer
+fedonpolicy_push_avg_trainer_iter = FedOnpolicy_PushAvgTrainer

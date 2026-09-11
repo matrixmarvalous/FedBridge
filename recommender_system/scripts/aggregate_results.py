@@ -30,7 +30,7 @@ DEFAULT_LOGS_DIR = PACKAGE_ROOT / "results" / "MovieLensEnv-v0" / "PPO" / "logs"
 DEFAULT_OUTPUT_DIR = PACKAGE_ROOT / "results" / "aggregated"
 
 SCENES = ("hetero5", "homo3")
-METHODS = ("fedbridge", "individual", "pushpull", "pfedme", "perfeddc", "fedavg")
+METHODS = ("fedbridge", "individual", "push_avg", "pfedme", "perfeddc", "fedavg")
 METRICS = ("R_cum", "Len", "Coverage")
 TAIL_EPOCHS = 10
 METRIC_KEYS: Mapping[str, tuple[str, ...]] = {
@@ -41,7 +41,7 @@ METRIC_KEYS: Mapping[str, tuple[str, ...]] = {
 
 RUN_DIR_RE = re.compile(
     r"^\[release__(hetero5|homo3)__"
-    r"(fedbridge|individual|pushpull|pfedme|perfeddc|fedavg)__([^\]]+)\]_(.+)$"
+    r"(fedbridge|individual|push_avg|pfedme|perfeddc|fedavg)__([^\]]+)\]_(.+)$"
 )
 RANK_LOG_RE = re.compile(r"^logs_rank(\d+)\.log$")
 LOG_RECORD_RE = re.compile(

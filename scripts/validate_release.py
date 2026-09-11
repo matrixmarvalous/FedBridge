@@ -38,7 +38,7 @@ RECOMMENDER_ROOT = RELEASE_ROOT / "recommender_system"
 N_RANKS = 8
 VALIDATION_SEED = 0  # Synthetic structural-test value; never a paper-run seed.
 SCENES = ("hetero5", "homo3")
-METHODS = ("fedbridge", "individual", "pushpull", "pfedme", "perfeddc", "fedavg")
+METHODS = ("fedbridge", "individual", "push_avg", "pfedme", "perfeddc", "fedavg")
 
 
 class ValidationError(RuntimeError):

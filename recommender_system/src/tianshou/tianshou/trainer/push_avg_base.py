@@ -21,7 +21,7 @@ from tianshou.utils import (
 )
 
 
-class PushPullBaseTrainer(ABC):
+class PushAvgBaseTrainer(ABC):
     """An iterator base class for trainers procedure.
 
     Returns an iterator that yields a 3-tuple (epoch, stats, info) of train results

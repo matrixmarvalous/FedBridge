@@ -19,7 +19,7 @@ import pandas as pd
 
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 SCENES = ("hetero5", "homo3")
-METHODS = ("fedbridge", "individual", "pushpull", "pfedme", "perfeddc", "fedavg")
+METHODS = ("fedbridge", "individual", "push_avg", "pfedme", "perfeddc", "fedavg")
 # Codex-modified 2026-09-10: plots consume generated aggregates only; no
 # historical result tables are bundled with the public code repository.
 METRICS = ("R_cum", "Len", "Coverage")
@@ -27,7 +27,7 @@ METRICS = ("R_cum", "Len", "Coverage")
 METHOD_LABELS = {
     "fedbridge": "FedBridge",
     "individual": "Individual",
-    "pushpull": "Push-Pull*",
+    "push_avg": "Push-Avg",
     "pfedme": "pFedMe",
     "perfeddc": "PerFedDC",
     "fedavg": "FedAvg",
@@ -35,7 +35,7 @@ METHOD_LABELS = {
 METHOD_COLORS = {
     "fedbridge": "#D62728",
     "individual": "#7F7F7F",
-    "pushpull": "#2CA02C",
+    "push_avg": "#2CA02C",
     "pfedme": "#1F77B4",
     "perfeddc": "#9467BD",
     "fedavg": "#FF7F0E",
@@ -43,7 +43,7 @@ METHOD_COLORS = {
 METHOD_STYLES = {
     "fedbridge": "-",
     "individual": (0, (2, 1.5)),
-    "pushpull": (0, (5, 2)),
+    "push_avg": (0, (5, 2)),
     "pfedme": (0, (3, 1, 1, 1)),
     "perfeddc": (0, (6, 2, 1, 2)),
     "fedavg": (0, (1, 1)),
@@ -148,8 +148,8 @@ def _require_columns(frame: pd.DataFrame, required: set[str], label: str) -> Non
 def _normalize_method_names(frame: pd.DataFrame) -> pd.DataFrame:
     result = frame.copy()
     # The pre-release analysis used "pushavg".  Normalize it when plotting the
-    # archived source data; newly generated release outputs use "pushpull".
-    result["method"] = result["method"].replace({"pushavg": "pushpull"})
+    # archived source data; newly generated release outputs use "push_avg".
+    result["method"] = result["method"].replace({"pushavg": "push_avg"})
     return result
 
 
@@ -332,7 +332,7 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
     figure.text(
         0.5,
         0.004,
-        "* Historical manuscript label: Push-Avg; executed release trainer: Push-Pull overwrite.",
+        "Push-Avg uses the original actor-parameter communication update.",
         ha="center",
         va="bottom",
         fontsize=7.2,

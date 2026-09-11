@@ -36,7 +36,7 @@ from src.tianshou.tianshou.env import DummyVectorEnv
 # policy_utils.codex_backup_20260519_164641.py; added pfedme_trainer.
 # Codex-modified 2026-08-18: route the final Bridge PPO name through the
 # existing on-policy Bridge trainer; numerical training behavior is unchanged.
-from src.tianshou.tianshou.trainer import onpolicy_trainer, offpolicy_trainer, fedonpolicy_trainer, fedonpolicy_pushpulltrainer, fedbridgeavg_trainer, perfeddc_trainer, pfedme_trainer, fedavgonpolicy_trainer, fedoffpolicy_trainer, fedbridgeoffp_trainer, fedbridgeonp_trainer, fedbridgehoffp_trainer, fedbridgehonp_trainer
+from src.tianshou.tianshou.trainer import onpolicy_trainer, offpolicy_trainer, fedonpolicy_trainer, fedonpolicy_push_avg_trainer, fedbridgeavg_trainer, perfeddc_trainer, pfedme_trainer, fedavgonpolicy_trainer, fedoffpolicy_trainer, fedbridgeoffp_trainer, fedbridgeonp_trainer, fedbridgehoffp_trainer, fedbridgehonp_trainer
 from src.tianshou.tianshou.trainer.offline import offline_trainer
 
 from src.core.util.utils import create_dir
@@ -570,8 +570,8 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             )
         )
 
-    elif trainer == 'fedonpolicy_pushpull':
-        result = fedonpolicy_pushpulltrainer(
+    elif trainer == 'fedonpolicy_push_avg':
+        result = fedonpolicy_push_avg_trainer(
             policy,
             train_collector,
             test_collector_set,

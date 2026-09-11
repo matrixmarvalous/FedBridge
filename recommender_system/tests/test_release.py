@@ -222,7 +222,7 @@ class ReleaseTests(unittest.TestCase):
         self.assertEqual({row["release_path"] for row in rows}, expected_paths)
         self.assertEqual(
             sum(row["copy_status"] == "renamed_for_bridge_release" for row in rows),
-            4,
+            8,
         )
         for row in rows:
             self.assertEqual(len(row["release_sha256"]), 64)

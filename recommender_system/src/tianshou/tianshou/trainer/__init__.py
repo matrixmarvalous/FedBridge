@@ -39,10 +39,10 @@ from tianshou.trainer.fedbridgeavg import (  # 文件名需与实际一致
     fedbridgeavg_trainer_iter,
 )
 
-from tianshou.trainer.fedonpolicy_pushpull import (  # 文件名需与实际一致
-    FedOnpolicy_PushPullTrainer,
-    fedonpolicy_pushpulltrainer,
-    fedonpolicy_pushpulltrainer_iter,
+from tianshou.trainer.fedonpolicy_push_avg import (  # 文件名需与实际一致
+    FedOnpolicy_PushAvgTrainer,
+    fedonpolicy_push_avg_trainer,
+    fedonpolicy_push_avg_trainer_iter,
 )
 
 from tianshou.trainer.perfeddc import (

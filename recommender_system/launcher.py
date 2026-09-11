@@ -124,7 +124,7 @@ sys.path.insert(0, 'src/tianshou')
 sys.path.insert(0, 'src/DeepCTR-Torch')
 sys.path.insert(0, 'examples/policy')
 from tianshou.policy import BridgePPOPolicy, PerFedDCPolicy, pFedMePolicy
-from tianshou.trainer import fedbridgeonp_trainer, fedonpolicy_pushpulltrainer, perfeddc_trainer, pfedme_trainer, fedavgonpolicy_trainer
+from tianshou.trainer import fedbridgeonp_trainer, fedonpolicy_push_avg_trainer, perfeddc_trainer, pfedme_trainer, fedavgonpolicy_trainer
 from policy_utils import get_args_all
 print('EasyRL4Rec release imports: OK')
 """

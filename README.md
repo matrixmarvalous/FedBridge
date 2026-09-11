@@ -4,8 +4,8 @@
 organization of Networked-MB-MARL; the previous version is in the private
 publication archive. -->
 
-Code for the paper *Bridge reinforcement learning enables collaborative
-learning of personalized policies across heterogeneous environments*.
+Code for the paper *Towards Personalized Collaborative Reinforcement Learning
+with Decoupled Bridge Policy Distillation*.
 
 ## Algorithms
 
@@ -16,7 +16,7 @@ keys are:
 | --- | --- | --- |
 | FedBridge | `fedbridge_singlecritic` | `fedbridge` |
 | Individual PPO | `individual` | `individual` |
-| Push-Avg / Push-Pull | `push_avg` | `pushpull` |
+| Push-Avg | `push_avg` | `push_avg` |
 | FedAvg | `fedavg` | `fedavg` |
 | PerFedDC | `perfeddc` | `perfeddc` |
 | pFedMe | `pfedme` | `pfedme` |
@@ -90,7 +90,7 @@ Use the corresponding component guide for evaluation and plotting commands:
 
 ```bibtex
 @misc{wang2026fedbridge,
-  title  = {Bridge Reinforcement Learning Enables Collaborative Learning of Personalized Policies across Heterogeneous Environments},
+  title  = {Towards Personalized Collaborative Reinforcement Learning with Decoupled Bridge Policy Distillation},
   author = {Dazhong Wang and Weidong Liu and Xiaojun Mao},
   year   = {2026}
 }

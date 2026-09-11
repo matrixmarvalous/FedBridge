@@ -30,7 +30,7 @@ python scripts/validate_assets.py --asset-root /path/to/staged-assets
 | --- | --- |
 | FedBridge | `fedbridge` |
 | Individual PPO | `individual` |
-| Push-Pull | `pushpull` |
+| Push-Avg | `push_avg` |
 | FedAvg | `fedavg` |
 | PerFedDC | `perfeddc` |
 | pFedMe | `pfedme` |

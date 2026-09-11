@@ -56,8 +56,11 @@ def get_args_PPO():
     parser.add_argument('--recompute-adv', action="store_true", default=False)
     parser.add_argument('--dual-clip', type=float, default=None)
     parser.add_argument('--value-clip', action="store_true", default=False)
+    
     parser.add_argument('--comm_times_per_epoch', type=int, default=25,
                         help='每个 epoch 期望通信次数（与 updates_per_epoch 换算 comm_interval）')
+    parser.add_argument('--lambda_kl', type=float, default=0.005,
+                        help='Bridge/Private 双向 KL 系数')
 
     
     parser.add_argument("--message", type=str, default="PPO")
@@ -158,7 +161,7 @@ def main(args):
     
     # 假设命令行传入的是类似 "pointneg"，或者 "pointnegC"
     # 我们要去掉尾部已有的 A/B/C 再拼接新的
-    base_msg = 'hetero5_pointneg'  # 去掉末尾的 A/B/C
+    base_msg = 'homo3_pointneg'  # 去掉末尾的 A/B/C
     
     args.read_message = base_msg + pattern[rank % len(pattern)]
 
@@ -169,8 +172,8 @@ def main(args):
     subset = subset_map[letter]
     
     # root = os.path.join("data", "MovieLens")
-    args.DATAPATH = f"hetero5_data_raw_{subset}"
-    args.PRODATAPATH = f"hetero5_data_processed_{subset}"
+    args.DATAPATH = f"homo3_data_raw_{subset}"
+    args.PRODATAPATH = f"homo3_data_processed_{subset}"
 
     
     # # 设备选择
@@ -231,7 +234,7 @@ def main(args):
 
     # %% 4. Learn policy
     learn_policy(args, env, dataset, policy, train_collector, test_collector_set, state_tracker, optim, MODEL_SAVE_PATH,
-                 logger_path, comm, trainer="fedonpolicy_pushpull")
+                 logger_path, comm, trainer="fedonpolicy_push_avg")
 
 
 if __name__ == '__main__':

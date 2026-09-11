@@ -83,7 +83,7 @@ The ensemble is trained before policy optimization and then frozen. Its prepared
 |---|---:|---:|---|
 | FedBridge | `alpha=0.005` (`hetero5`); `alpha=0.001` (`homo3`) | 5; 10 | Personal PPO plus separately updated and exchanged bridge actor |
 | Individual PPO | `alpha=0` | 25 historical trainer synchronizations | Preserved BridgePPO runner with an exact-zero short circuit: KL evaluation and bridge optimization are skipped, and the personal update equals standard PPO; the trainer synchronization remains and must not be counted as an efficient no-communication implementation |
-| Push-Pull* | None | 10 | Dispatches the copied `PushPullBaseTrainer` overwrite path |
+| Push-Avg | None | 10 | Dispatches the copied `PushAvgBaseTrainer` overwrite path |
 | pFedMe | `lambda_l2=0.001`, `beta=0.05` | 10 | Same values in both protocols |
 | PerFedDC | `lambda_l2=0.05`, `beta=0.005` | 10 | Same values in both protocols |
 | FedAvg | None | 10 | Exact population aggregation through the server process |

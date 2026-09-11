@@ -48,7 +48,7 @@ RECOMMENDER_SCENES = ("hetero5", "homo3")
 RECOMMENDER_METHODS = (
     "fedbridge",
     "individual",
-    "pushpull",
+    "push_avg",
     "pfedme",
     "perfeddc",
     "fedavg",
@@ -73,7 +73,7 @@ MUJOCO_METHOD_SHORT = {
 REC_METHOD_SHORT = {
     "fedbridge": "bridge",
     "individual": "ind",
-    "pushpull": "push",
+    "push_avg": "push",
     "pfedme": "me",
     "perfeddc": "dc",
     "fedavg": "avg",

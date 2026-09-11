@@ -14,7 +14,7 @@ SCENES: Tuple[str, ...] = ("hetero5", "homo3")
 METHODS: Tuple[str, ...] = (
     "fedbridge",
     "individual",
-    "pushpull",
+    "push_avg",
     "pfedme",
     "perfeddc",
     "fedavg",
@@ -23,9 +23,9 @@ METHODS: Tuple[str, ...] = (
 METHOD_LABELS: Mapping[str, str] = {
     "fedbridge": "FedBridge",
     "individual": "Individual",
-    # The paper used the label Push-Avg. The copied implementation invokes
-    # PushPullBaseTrainer and overwrites with received actor parameters.
-    "pushpull": "Push-Pull*",
+    # Push-Avg retains the original actor-parameter communication update.
+    # PushAvgBaseTrainer overwrites with received actor parameters.
+    "push_avg": "Push-Avg",
     "pfedme": "pFedMe",
     "perfeddc": "PerFedDC",
     "fedavg": "FedAvg",
@@ -36,8 +36,8 @@ RUNNERS: Mapping[Tuple[str, str], str] = {
     ("homo3", "fedbridge"): "homo_run_FedBridgePPO_seed.py",
     ("hetero5", "individual"): "run_FedBridgePPO_hetero5_seed.py",
     ("homo3", "individual"): "homo_run_FedBridgePPO_seed.py",
-    ("hetero5", "pushpull"): "run_FedPPO_pushpull_seed.py",
-    ("homo3", "pushpull"): "homo_run_FedPPO_pushpull_seed.py",
+    ("hetero5", "push_avg"): "run_FedPPO_push_avg_seed.py",
+    ("homo3", "push_avg"): "homo_run_FedPPO_push_avg_seed.py",
     ("hetero5", "pfedme"): "run_pFedMe_seed.py",
     ("homo3", "pfedme"): "homo_run_pFedMe_seed.py",
     ("hetero5", "perfeddc"): "run_PerFedDC_seed.py",
@@ -66,8 +66,8 @@ METHOD_ARGS: Mapping[Tuple[str, str], Tuple[str, ...]] = {
     # preserved trainer still performs the historical bridge synchronization.
     ("hetero5", "individual"): ("--lambda_kl", "0", "--comm_times_per_epoch", "25"),
     ("homo3", "individual"): ("--lambda_kl", "0", "--comm_times_per_epoch", "25"),
-    ("hetero5", "pushpull"): ("--comm_times_per_epoch", "10"),
-    ("homo3", "pushpull"): ("--comm_times_per_epoch", "10"),
+    ("hetero5", "push_avg"): ("--comm_times_per_epoch", "10"),
+    ("homo3", "push_avg"): ("--comm_times_per_epoch", "10"),
     ("hetero5", "pfedme"): ("--comm_times_per_epoch", "10", "--lambda_l2", "0.001", "--beta", "0.05"),
     ("homo3", "pfedme"): ("--comm_times_per_epoch", "10", "--lambda_l2", "0.001", "--beta", "0.05"),
     ("hetero5", "perfeddc"): ("--comm_times_per_epoch", "10", "--lambda_l2", "0.05", "--beta", "0.005"),
@@ -105,8 +105,8 @@ RANK_SEED_MODE: Mapping[Tuple[str, str], str] = {
         if (scene, method) in {
             ("hetero5", "fedbridge"),
             ("hetero5", "individual"),
-            ("hetero5", "pushpull"),
-            ("homo3", "pushpull"),
+            ("hetero5", "push_avg"),
+            ("homo3", "push_avg"),
             ("hetero5", "fedavg"),
             ("homo3", "fedavg"),
         }
