@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the accompanying FedBridge manuscript and this software release."
+title: "FedBridge"
+type: software
+authors:
+  - family-names: Wang
+    given-names: Dazhong
+  - family-names: Liu
+    given-names: Weidong
+  - family-names: Mao
+    given-names: Xiaojun
+version: 1.0.0
+date-released: 2026-08-14
+abstract: >-
+  Code for the MuJoCo and recommender-system experiments accompanying
+  FedBridge.
+keywords:
+  - federated reinforcement learning
+  - personalized reinforcement learning
+  - decentralized learning
+  - reproducibility
+preferred-citation:
+  type: generic
+  title: "Bridge reinforcement learning enables collaborative learning of personalized policies across heterogeneous environments"
+  authors:
+    - family-names: Wang
+      given-names: Dazhong
+    - family-names: Liu
+      given-names: Weidong
+    - family-names: Mao
+      given-names: Xiaojun
+  year: 2026

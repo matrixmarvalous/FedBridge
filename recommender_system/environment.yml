@@ -1,0 +1,10 @@
+# Codex-added 2026-08-14: portable starting point for the audited environment.
+name: fedbridge-easyrl4rec
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - openmpi=5.0
+  - pip:
+      - -r requirements.txt

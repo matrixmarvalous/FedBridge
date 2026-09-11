@@ -1,0 +1,11 @@
+# Codex-added 2026-08-14: keep generated/private artifacts out of the release.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.codex_hpc/
+results/
+figures/
+data/MovieLens/*
+!data/MovieLens/README.md
+saved_models/MovieLensEnv-v0/DeepFM/*
+!saved_models/MovieLensEnv-v0/DeepFM/README.md

@@ -1,0 +1,20 @@
+# Codex-added 2026-08-14: versions observed in the audited EasyRL4Rec environment.
+torch==2.8.0
+tensorflow==2.20.0
+numpy==2.2.6
+pandas==2.3.2
+scipy==1.16.2
+scikit-learn==1.7.2
+gymnasium==1.2.0
+pettingzoo==1.25.0
+mpi4py==3.1.6
+matplotlib==3.10.6
+seaborn==0.13.2
+numba==0.61.2
+h5py==3.14.0
+logzero==1.7.0
+tqdm==4.67.1
+tensorboard==2.20.0
+cloudpickle==3.1.1
+packaging==25.0
+requests==2.32.5

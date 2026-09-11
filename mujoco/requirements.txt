@@ -1,0 +1,9 @@
+torch==2.5.1
+gymnasium[mujoco]==1.1.1
+mujoco==3.3.6
+mpi4py==4.1.0
+numpy==2.0.2
+pandas==2.3.2
+matplotlib==3.9.4
+scipy==1.13.1
+

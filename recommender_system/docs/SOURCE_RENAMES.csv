@@ -1,0 +1,5 @@
+release_path,source_path
+examples/policy/homo_run_FedBridgePPO_seed.py,examples/policy/homo_run_FedProxyPPO_seed.py
+examples/policy/run_FedBridgePPO_hetero5_seed.py,examples/policy/run_FedProxyPPO_hetero5_seed.py
+src/tianshou/tianshou/trainer/bridgeavgbase.py,src/tianshou/tianshou/trainer/proxyavgbase.py
+src/tianshou/tianshou/trainer/fedbridgeavg.py,src/tianshou/tianshou/trainer/fedproxyavg.py

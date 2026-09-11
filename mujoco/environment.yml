@@ -1,0 +1,10 @@
+name: fedbridge-mujoco
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - pip
+  - openmpi=4.1
+  - pip:
+      - -r requirements.txt
+

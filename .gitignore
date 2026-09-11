@@ -1,0 +1,19 @@
+# Codex-modified 2026-09-10: keep generated experiment artifacts outside the
+# code-only GitHub repository.
+**/__pycache__/
+**/*.py[cod]
+**/.ipynb_checkpoints/
+**/.pytest_cache/
+**/.codex_hpc/
+**/results/
+**/figures/
+**/reference_figures/
+**/source_data/
+**/runs/
+**/wandb/
+**/*.out
+**/*.err
+**/*.log
+**/*.pth
+**/*.pt
+**/*.ckpt
