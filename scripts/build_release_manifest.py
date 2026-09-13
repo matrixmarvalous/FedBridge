@@ -41,7 +41,7 @@ def write_manifest() -> None:
         f"{digest(path)}  {path.relative_to(RELEASE_ROOT).as_posix()}"
         for path in included_files()
     ]
-    MANIFEST.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    MANIFEST.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     print(f"Wrote {len(lines)} checksums to {MANIFEST.name}")
 
 
@@ -80,4 +80,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

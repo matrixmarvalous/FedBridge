@@ -29,12 +29,14 @@ PROCESSED_FILES: Sequence[str] = (
 )
 
 
-def required_relative_paths() -> List[Path]:
+def required_relative_paths(scenes: Sequence[str] = SCENES) -> List[Path]:
     """Return the release's deterministic, minimum external-asset inventory."""
+    if not scenes or any(scene not in SCENES for scene in scenes):
+        raise ValueError("select at least one supported scene")
     required: List[Path] = []
     movie_root = Path("data") / "MovieLens"
 
-    for scene in SCENES:
+    for scene in scenes:
         for subset in SUBSETS:
             raw_dir = movie_root / f"{scene}_data_raw_{subset}"
             processed_dir = movie_root / f"{scene}_data_processed_{subset}"
@@ -42,7 +44,7 @@ def required_relative_paths() -> List[Path]:
             required.extend(processed_dir / name for name in PROCESSED_FILES)
 
     model_root = Path("saved_models") / "MovieLensEnv-v0" / "DeepFM"
-    for scene in SCENES:
+    for scene in scenes:
         for cluster in CLUSTERS:
             message = f"{scene}_pointneg{cluster}"
             required.append(model_root / "params" / f"[{message}]_params.pickle")
@@ -111,13 +113,18 @@ def parse_args() -> argparse.Namespace:
         metavar="CSV",
         help="Optionally write relative paths, byte sizes, and SHA-256 digests.",
     )
+    parser.add_argument("--scene", choices=SCENES, help="Check one scene; default: both.")
+    parser.add_argument(
+        "--verify-manifest", type=Path, metavar="CSV",
+        help="Verify every selected asset against recorded byte sizes and SHA-256 digests.",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
     args = parse_args()
     asset_root: Path = args.asset_root
-    required = required_relative_paths()
+    required = required_relative_paths((args.scene,) if args.scene else SCENES)
 
     if not asset_root.is_dir():
         print("ERROR: the supplied asset root is not a directory.", file=sys.stderr)
@@ -145,6 +152,24 @@ def main() -> int:
             for path in invalid:
                 print(f"  - {path.as_posix()}", file=sys.stderr)
         return 2
+
+    if args.verify_manifest is not None:
+        try:
+            with args.verify_manifest.open(newline="", encoding="utf-8") as handle:
+                rows = list(csv.DictReader(handle))
+            records = {row["path"]: row for row in rows}
+            if len(records) != len(rows):
+                raise ValueError("duplicate manifest paths")
+            for relative_path in required:
+                record = records[relative_path.as_posix()]
+                full_path = asset_root / relative_path
+                if (int(record["size_bytes"]) != full_path.stat().st_size
+                        or record["sha256"] != sha256_file(full_path)):
+                    raise ValueError(f"asset checksum mismatch: {relative_path.as_posix()}")
+        except (OSError, ValueError, TypeError, KeyError, csv.Error) as error:
+            print(f"ERROR: manifest verification failed: {error}", file=sys.stderr)
+            return 2
+        print(f"SHA-256 verified for {len(required)} selected asset files.")
 
     if args.write_manifest is not None:
         try:

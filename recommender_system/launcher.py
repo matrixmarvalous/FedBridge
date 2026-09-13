@@ -102,13 +102,14 @@ def asset_paths(asset_root: Path) -> tuple[Path, Path]:
     )
 
 
-def validate_assets(asset_root: Path) -> None:
+def validate_assets(asset_root: Path, scene: str | None = None) -> None:
     subprocess.run(
         [
             sys.executable,
             str(THIS_DIR / "scripts" / "validate_assets.py"),
             "--asset-root",
             str(asset_root.expanduser().resolve()),
+            *(["--scene", scene] if scene is not None else []),
         ],
         cwd=THIS_DIR,
         check=True,
@@ -221,7 +222,7 @@ def write_status(run_dir: Path, args: argparse.Namespace, final_epoch: int) -> N
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
     if not args.skip_asset_check:
-        validate_assets(args.asset_root)
+        validate_assets(args.asset_root, args.scene)
     if args.audit_only:
         audit_imports()
         return 0

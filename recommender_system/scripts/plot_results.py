@@ -94,7 +94,7 @@ def _default_input_dir() -> Path:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Create a 2-scene by 3-metric EasyRL4Rec learning-curve figure."
+        description="Create learning curves for selected EasyRL4Rec scenes and methods."
     )
     parser.add_argument(
         "--input-dir",
@@ -121,6 +121,8 @@ def build_parser() -> argparse.ArgumentParser:
         help="figure output directory (default: recommender_system/figures)",
     )
     parser.add_argument("--dpi", type=int, default=300, help="PNG resolution (default: 300)")
+    parser.add_argument("--scene", choices=SCENES, help="Select one scene; default: both.")
+    parser.add_argument("--method", choices=METHODS, help="Select one method; default: all.")
     return parser
 
 
@@ -164,7 +166,10 @@ def _numeric(frame: pd.DataFrame, columns: Sequence[str], label: str) -> pd.Data
     return result
 
 
-def load_and_validate(epoch_path: Path, tail_path: Path) -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_and_validate(
+    epoch_path: Path, tail_path: Path,
+    scenes: Sequence[str] = SCENES, methods: Sequence[str] = METHODS,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     if not epoch_path.is_file():
         raise FileNotFoundError("epoch aggregate CSV was not found")
     if not tail_path.is_file():
@@ -176,13 +181,13 @@ def load_and_validate(epoch_path: Path, tail_path: Path) -> tuple[pd.DataFrame, 
     _require_columns(tail_frame, TAIL_REQUIRED_COLUMNS, "tail CSV")
 
     epoch_frame = epoch_frame[
-        epoch_frame["scene"].isin(SCENES)
-        & epoch_frame["method"].isin(METHODS)
+        epoch_frame["scene"].isin(scenes)
+        & epoch_frame["method"].isin(methods)
         & epoch_frame["metric"].isin(METRICS)
     ].copy()
     tail_frame = tail_frame[
-        tail_frame["scene"].isin(SCENES)
-        & tail_frame["method"].isin(METHODS)
+        tail_frame["scene"].isin(scenes)
+        & tail_frame["method"].isin(methods)
         & tail_frame["metric"].isin(METRICS)
     ].copy()
     epoch_frame = _numeric(
@@ -214,8 +219,8 @@ def load_and_validate(epoch_path: Path, tail_path: Path) -> tuple[pd.DataFrame, 
 
     expected_conditions = {
         (scene, method, metric)
-        for scene in SCENES
-        for method in METHODS
+        for scene in scenes
+        for method in methods
         for metric in METRICS
     }
     epoch_conditions = set(
@@ -255,7 +260,10 @@ def load_and_validate(epoch_path: Path, tail_path: Path) -> tuple[pd.DataFrame, 
     return epoch_frame, tail_frame
 
 
-def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
+def make_figure(
+    epoch_frame: pd.DataFrame,
+    scenes: Sequence[str] = SCENES, methods: Sequence[str] = METHODS,
+) -> plt.Figure:
     plt.rcParams.update(
         {
             "font.family": "DejaVu Sans",
@@ -272,12 +280,14 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
             "ytick.direction": "out",
         }
     )
-    figure, axes = plt.subplots(2, 3, figsize=(11.2, 6.3), sharex="col", squeeze=False)
+    figure, axes = plt.subplots(
+        len(scenes), 3, figsize=(11.2, 3.15 * len(scenes)), sharex="col", squeeze=False
+    )
 
-    for row, scene in enumerate(SCENES):
+    for row, scene in enumerate(scenes):
         for column, metric in enumerate(METRICS):
             axis = axes[row, column]
-            for method in METHODS:
+            for method in methods:
                 data = epoch_frame[
                     (epoch_frame["scene"] == scene)
                     & (epoch_frame["method"] == method)
@@ -310,7 +320,7 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
                     )
 
             axis.set_title(f"{SCENE_LABELS[scene]} · {METRIC_LABELS[metric]}")
-            if row == len(SCENES) - 1:
+            if row == len(scenes) - 1:
                 axis.set_xlabel("Epoch")
             axis.set_ylabel(METRIC_LABELS[metric])
             axis.grid(axis="y", color="#D9D9D9", linewidth=0.55, alpha=0.7)
@@ -323,7 +333,7 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
         handles,
         labels,
         loc="lower center",
-        ncol=len(METHODS),
+        ncol=len(methods),
         frameon=False,
         bbox_to_anchor=(0.5, 0.026),
         handlelength=2.7,
@@ -332,7 +342,8 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
     figure.text(
         0.5,
         0.004,
-        "Push-Avg uses the original actor-parameter communication update.",
+        "Push-Avg uses the original actor-parameter communication update."
+        if "push_avg" in methods else "",
         ha="center",
         va="bottom",
         fontsize=7.2,
@@ -345,18 +356,20 @@ def make_figure(epoch_frame: pd.DataFrame) -> plt.Figure:
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    scenes = (args.scene,) if args.scene else SCENES
+    methods = (args.method,) if args.method else METHODS
     if args.dpi <= 0:
         parser.error("--dpi must be positive")
     epoch_path, tail_path = _resolve_inputs(args)
     try:
-        epoch_frame, _tail_frame = load_and_validate(epoch_path, tail_path)
+        epoch_frame, _tail_frame = load_and_validate(epoch_path, tail_path, scenes, methods)
     except (FileNotFoundError, OSError, pd.errors.ParserError, ValueError) as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2
 
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    figure = make_figure(epoch_frame)
+    figure = make_figure(epoch_frame, scenes, methods)
     destinations = [output_dir / f"learning_curves.{extension}" for extension in ("png", "pdf", "svg")]
     try:
         for destination in destinations:

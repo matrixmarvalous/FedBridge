@@ -254,6 +254,8 @@ def discover_runs(
     logs_dir: Path,
     expected_epochs: int,
     expected_ranks: int,
+    scenes: Sequence[str] = SCENES,
+    methods: Sequence[str] = METHODS,
 ) -> tuple[dict[tuple[str, str, str], ParsedRun], dict[tuple[str, str, str], int]]:
     """Discover logical replicates and select one attempt for each run_id."""
 
@@ -265,6 +267,8 @@ def discover_runs(
         if match is None:
             continue
         scene, method, run_id, _timestamp = match.groups()
+        if scene not in scenes or method not in methods:
+            continue
         attempts[(scene, method, run_id)].append(entry)
 
     selected: dict[tuple[str, str, str], ParsedRun] = {}
@@ -308,6 +312,8 @@ def aggregate(
     attempt_counts: Mapping[tuple[str, str, str], int],
     expected_epochs: int,
     expected_ranks: int,
+    scenes: Sequence[str] = SCENES,
+    methods: Sequence[str] = METHODS,
 ) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, list[str]]:
     """Build public completeness and aggregate tables without run identifiers."""
 
@@ -316,8 +322,8 @@ def aggregate(
     tail_values: dict[tuple[str, str, str], list[float]] = defaultdict(list)
     strict_issues: list[str] = []
 
-    for scene in SCENES:
-        for method in METHODS:
+    for scene in scenes:
+        for method in methods:
             condition_runs = sorted(
                 (
                     (run_id, run)
@@ -388,8 +394,8 @@ def aggregate(
                         )
 
     epoch_rows: list[dict[str, object]] = []
-    for scene in SCENES:
-        for method in METHODS:
+    for scene in scenes:
+        for method in methods:
             for metric in METRICS:
                 for epoch in range(1, expected_epochs + 1):
                     values = epoch_values.get((scene, method, metric, epoch), [])
@@ -411,8 +417,8 @@ def aggregate(
                     )
 
     tail_rows: list[dict[str, object]] = []
-    for scene in SCENES:
-        for method in METHODS:
+    for scene in scenes:
+        for method in methods:
             for metric in METRICS:
                 values = tail_values.get((scene, method, metric), [])
                 if not values:
@@ -475,12 +481,16 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="write aggregates from available complete epochs instead of failing",
     )
+    parser.add_argument("--scene", choices=SCENES, help="Select one scene; default: both.")
+    parser.add_argument("--method", choices=METHODS, help="Select one method; default: all.")
     return parser
 
 
 def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    scenes = (args.scene,) if args.scene else SCENES
+    methods = (args.method,) if args.method else METHODS
     if args.expected_epochs <= 0:
         parser.error("--expected-epochs must be positive")
     if args.expected_ranks <= 0:
@@ -496,6 +506,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         logs_dir=logs_dir,
         expected_epochs=args.expected_epochs,
         expected_ranks=args.expected_ranks,
+        scenes=scenes,
+        methods=methods,
     )
     if not selected:
         parser.error("no directories matching the release naming convention were found")
@@ -505,6 +517,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         attempt_counts=attempt_counts,
         expected_epochs=args.expected_epochs,
         expected_ranks=args.expected_ranks,
+        scenes=scenes,
+        methods=methods,
     )
     if strict_issues and not args.allow_incomplete:
         print(

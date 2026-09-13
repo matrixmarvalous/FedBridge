@@ -47,7 +47,7 @@ During training, the reward is the DeepFM ensemble prediction shifted by the min
 | L2 coefficient | 0.1 |
 | Training epochs | 5 |
 
-The ensemble is trained before policy optimization and then frozen. Its prepared weights are external assets; their training seed values are not distributed.
+The ensemble is trained before policy optimization and then frozen. The prepared `hetero5` weights are provided in the private asset release described in [DATA.md](DATA.md); their training seed values are not distributed.
 
 ## Common PPO settings
 

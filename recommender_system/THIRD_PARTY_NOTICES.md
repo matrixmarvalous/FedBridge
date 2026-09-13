@@ -38,7 +38,7 @@ Modified DeepCTR-Torch files, if any, must retain prominent change notices as re
 
 ## MovieLens-1M data
 
-MovieLens-1M data and all experiment-derived copies are **not included**. The dataset is distributed by GroupLens under dataset-specific terms, not under this code package's licenses. Obtain it from the [official MovieLens 1M page](https://grouplens.org/datasets/movielens/1m/) and review the accompanying terms. Redistribution permission for the prepared `hetero5` and `homo3` assets has not been established.
+The prepared `hetero5` data and user-model assets are staged as attachments to the private repository's [asset release](https://github.com/matrixmarvalous/FedBridge/releases/tag/recommender-hetero5-v1), not in Git history. The `homo3` assets are not provided. MovieLens-1M is distributed by GroupLens under dataset-specific terms, not under this code package's licenses. The original dataset is available from the [official MovieLens 1M page](https://grouplens.org/datasets/movielens/1m/). Review its terms and confirm permission before publicly redistributing the prepared assets. Private staging does not grant redistribution rights.
 
 Dataset citation:
 

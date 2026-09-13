@@ -50,7 +50,14 @@ conda activate fedbridge-easyrl4rec
 ```
 
 The recommender experiments also require the prepared MovieLens and DeepFM
-assets described in
+assets. The assets for one representative heterogeneous (`hetero5`) FedBridge
+experiment are provided in the
+[hetero5 asset release](https://github.com/matrixmarvalous/FedBridge/releases/tag/recommender-hetero5-v1).
+Download, integrity-check, training and plotting instructions are in
+[`recommender_system/README.md`](recommender_system/README.md). The bundle
+contains 54 runtime files (1.46 GB uncompressed), including all three user
+groups and their pretrained models. It does not include `homo3` assets.
+The file inventory and scope are described in
 [`recommender_system/docs/DATA.md`](recommender_system/docs/DATA.md).
 
 ## Running experiments
@@ -69,15 +76,17 @@ mpirun -n 8 python launcher.py \
 
 Run one recommender-system experiment:
 
+First download and extract the asset bundle using the component guide.
+
 ```bash
 cd recommender_system
-SEED=YOUR_INTEGER_SEED
+SEED=0  # Representative run, not an embedded paper seed.
 python launcher.py \
   --scene hetero5 \
   --method fedbridge \
   --seed "${SEED}" \
   --run-id run-a \
-  --asset-root /path/to/staged-assets \
+  --asset-root assets/fedbridge-hetero5-assets \
   --output-root results
 ```
 

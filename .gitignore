@@ -17,3 +17,6 @@
 **/*.pth
 **/*.pt
 **/*.ckpt
+
+# Downloaded recommendation assets are supplied as Release attachments.
+/recommender_system/assets/
