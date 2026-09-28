@@ -97,10 +97,4 @@ Use the corresponding component guide for evaluation and plotting commands:
 
 ## Citation
 
-```bibtex
-@misc{wang2026fedbridge,
-  title  = {Towards Personalized Collaborative Reinforcement Learning with Decoupled Bridge Policy Distillation},
-  author = {Dazhong Wang and Weidong Liu and Xiaojun Mao},
-  year   = {2026}
-}
-```
+Citation details are omitted during double-blind review and will be added after the review process.
