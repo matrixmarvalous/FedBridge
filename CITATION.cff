@@ -1,14 +1,9 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite the accompanying FedBridge manuscript and this software release."
+message: "Citation details are temporarily anonymized for double-blind review."
 title: "FedBridge"
 type: software
 authors:
-  - family-names: Wang
-    given-names: Dazhong
-  - family-names: Liu
-    given-names: Weidong
-  - family-names: Mao
-    given-names: Xiaojun
+  - name: "Anonymous Authors"
 version: 1.0.0
 date-released: 2026-08-14
 abstract: >-
@@ -23,10 +18,5 @@ preferred-citation:
   type: generic
   title: "Towards Personalized Collaborative Reinforcement Learning with Decoupled Bridge Policy Distillation"
   authors:
-    - family-names: Wang
-      given-names: Dazhong
-    - family-names: Liu
-      given-names: Weidong
-    - family-names: Mao
-      given-names: Xiaojun
+    - name: "Anonymous Authors"
   year: 2026
