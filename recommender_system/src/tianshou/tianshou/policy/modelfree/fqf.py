@@ -59,7 +59,6 @@ class FQFPolicy(QRDQNPolicy):
         self._fraction_optim = fraction_optim
 
     def _target_q(self, batch, buffer: ReplayBuffer, indices: np.ndarray) -> torch.Tensor:
-        # batch = buffer[indices]  # batch.obs_next: s_{t+n}
         if self._target:
             result = self(batch, input="obs_next")
             act, fractions = result.act, result.fractions

@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2022/11/14 14:50
-# @Author  : Chongming GAO
-# @FileName: user_model_ensemble.py
 import os
 import pickle
 from collections import Counter, defaultdict
@@ -23,9 +19,6 @@ from src.core.userModel.user_model_pairwise_variance import UserModel_Pairwise_V
 from logzero import logger
 
 from deepctr_torch.inputs import combined_dnn_input, build_input_features
-
-
-# def collect_res(res_list, res):
 
 
 class EnsembleModel():
@@ -66,26 +59,13 @@ class EnsembleModel():
 
     def fit_data(self, *args, **kwargs):
 
-        # pool = Pool()
-        # for model in self.user_models:
-        #     res = pool.apply_async(func=fit_data_handler, args=(model,) + args, kwds=kwargs, callback=lambda x: print(x))  # 实例化进程对象
-        #     print(res.get())
-        #
-        # pool.close()
-        # pool.join()
 
         history_list = []
         for model in self.user_models:
             history = model.fit_data(*args, **kwargs)
-            # print(history)
-            # logger.info(history.history)
             logger.info("\n")
             history_list.append(history.history)
-        # logger.info("============ Summarized results =============")
         logger.info("============ Training terminated. ===================")
-        # for hist in history_list:
-        #     logger.info(hist)
-        #     # logger.info("\n")
 
         return history_list
 
@@ -95,12 +75,6 @@ class EnsembleModel():
 
             model.load_state_dict(torch.load(MODEL_PATH_new))
 
-            # todo: need to cuda??
-
-            # model = model.cpu()
-            # model.linear_model.device = "cpu"
-            # model.linear.device = "cpu"
-            #
 
     def load_val_user_item_embedding(self, model_i=0, freeze_emb=True):
         user_embedding = torch.load(get_detailed_path(self.USER_VAL_EMBEDDING_PATH, model_i))
@@ -142,14 +116,10 @@ class EnsembleModel():
             mean_tensor = np.stack(mean_mat_list)
             var_tensor = np.stack(var_mat_list)
 
-            # mean_sampled = np.zeros_like(mean_mat_list[0])
-            # var_sampled = np.zeros_like(var_mat_list[0])
             prediction = np.zeros_like(var_mat_list[0])
 
             for i in range(len(prediction)):
                 for j in range(len(prediction[0])):
-                    # mean_sampled[i][j] = mean_tensor[ind_mat[i][j],i,j]
-                    # var_sampled[i][j] = var_tensor[ind_mat[i][j], i, j]
                     prediction[i][j] = mean_tensor[ind_mat[i][j], i, j] + \
                                        np.sqrt(var_tensor[ind_mat[i][j], i, j]) * np.random.normal()
 
@@ -180,14 +150,6 @@ class EnsembleModel():
         with open(self.MODEL_PARAMS_PATH, "wb") as output_file:
             pickle.dump(model_parameters, output_file)
 
-        # (3) Save Model
-        #  To cpu
-
-        # model = user_model.cpu()
-        # model.linear_model.device = "cpu"
-        # model.linear.device = "cpu"
-        #
-        # torch.save(model.state_dict(), MODEL_PATH)
 
         for i, model in enumerate(self.user_models):
             MODEL_PATH_new = get_detailed_path(self.MODEL_PATH, i)
@@ -198,7 +160,6 @@ class EnsembleModel():
             torch.save(model.state_dict(), MODEL_PATH_new)
 
         # (4) Save Embedding
-        # torch.save(model.embedding_dict.state_dict(), MODEL_EMBEDDING_PATH)
 
         def save_embedding(model, df_save, columns, SAVEPATH):
             df_save = df_save.reset_index(drop=False)
@@ -274,7 +235,6 @@ def get_one_predicted_res(model, df_x_complete, test_loader, steps_per_epoch):
     mean_all_cat = np.concatenate(mean_all).astype("float64").reshape([-1])
     var_all_cat = np.concatenate(var_all).astype("float64").reshape([-1])
 
-    # user_ids = np.sort(df_x_complete["user_id"].unique())
 
     num_user = len(df_x_complete["user_id"].unique())
     num_item = len(df_x_complete["item_id"].unique())
@@ -282,7 +242,6 @@ def get_one_predicted_res(model, df_x_complete, test_loader, steps_per_epoch):
     if num_user != df_x_complete["user_id"].max() + 1:
         # The ids of training set should be aligned with that of the test set!!!
         # For KuaiRec which train on a big matrix and test on a small matrix. 
-        # assert num_item != df_x_complete["item_id"].max() + 1
         lbe_user = LabelEncoder()
         lbe_item = LabelEncoder()
 
@@ -298,7 +257,6 @@ def get_one_predicted_res(model, df_x_complete, test_loader, steps_per_epoch):
             (var_all_cat, (lbe_user.transform(df_x_complete["user_id"]), lbe_item.transform(df_x_complete["item_id"]))),
             shape=(num_user, num_item)).toarray()
     else:
-        # assert num_item == df_x_complete["item_id"].max() + 1 # The ids need to be aligned!
         mean_mat = csr_matrix(
             (mean_all_cat, (df_x_complete["user_id"], df_x_complete["item_id"])),
             shape=(num_user, num_item)).toarray()
@@ -307,9 +265,5 @@ def get_one_predicted_res(model, df_x_complete, test_loader, steps_per_epoch):
             (var_all_cat, (df_x_complete["user_id"], df_x_complete["item_id"])),
             shape=(num_user, num_item)).toarray()
 
-    # minn = mean_mat.min()
-    # maxx = mean_mat.max()
-    # normed_mat = (mean_mat - minn) / (maxx - minn)
-    # return normed_mat
 
     return mean_mat, var_mat

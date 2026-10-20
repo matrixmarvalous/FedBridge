@@ -92,10 +92,9 @@ class FedOffpolicyTrainer(FedOffPolicyTrainer):
         comm: Any = None,                     # MPI communicator
         rank: int = 0,
         world_size: int = 1,
-        comm_times_per_epoch: int = 10,               # 更新多少次后通信一次
-        rota: Optional[list[int]] = None,     # 旋转拓扑
+        comm_times_per_epoch: int = 10,
+        rota: Optional[list[int]] = None,
         verbose_sync: bool = True,
-        ######
         **kwargs: Any,
     ):
         super().__init__(
@@ -127,7 +126,6 @@ class FedOffpolicyTrainer(FedOffPolicyTrainer):
             comm_times_per_epoch=comm_times_per_epoch,
             rota=rota,
             verbose_sync=verbose_sync,
-            #######
             **kwargs,
         )
 

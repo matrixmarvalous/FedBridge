@@ -1,4 +1,3 @@
-# Codex-added 2026-05-19: pFedMe on-policy trainer wrapper for EasyRL4Rec.
 from typing import Any, Callable, Dict, Optional, Union
 
 import numpy as np
@@ -90,10 +89,9 @@ class pFedMeTrainer(pFedMeBaseTrainer):
         comm: Any = None,                     # MPI communicator
         rank: int = 0,
         world_size: int = 1,
-        comm_times_per_epoch: int = 10,               # 更新多少次后通信一次
-        rota: Optional[list[int]] = None,     # 旋转拓扑
+        comm_times_per_epoch: int = 10,
+        rota: Optional[list[int]] = None,
         verbose_sync: bool = True,
-        ######
         train_fn: Optional[Callable[[int, int], None]] = None,
         test_fn: Optional[Callable[[int, Optional[int]], None]] = None,
         stop_fn: Optional[Callable[[float], bool]] = None,
@@ -126,7 +124,6 @@ class pFedMeTrainer(pFedMeBaseTrainer):
             comm_times_per_epoch = comm_times_per_epoch,
             rota=rota,
             verbose_sync=verbose_sync,
-            #######
             train_fn=train_fn,
             test_fn=test_fn,
             stop_fn=stop_fn,

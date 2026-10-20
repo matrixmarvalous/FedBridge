@@ -1,4 +1,3 @@
-<!-- Codex-added 2026-08-14: document the external assets and the reproducibility boundary. -->
 # EasyRL4Rec data and pretrained user-model assets
 
 The experiment-specific MovieLens splits, processed data and pretrained DeepFM user models for one representative **hetero5 FedBridge experiment** are provided as attachments to the [hetero5 asset release](https://github.com/matrixmarvalous/FedBridge/releases/tag/recommender-hetero5-v1). Large binary assets are not stored in Git history. The repository and its release are currently private.

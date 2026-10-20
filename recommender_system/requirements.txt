@@ -1,4 +1,3 @@
-# Codex-added 2026-08-14: versions observed in the audited EasyRL4Rec environment.
 torch==2.8.0
 tensorflow==2.20.0
 numpy==2.2.6

@@ -20,15 +20,11 @@ from tianshou.policy.modelfree.td3 import TD3Policy
 from tianshou.policy.modelfree.sac import SACPolicy
 from tianshou.policy.modelfree.redq import REDQPolicy
 from tianshou.policy.modelfree.discrete_sac import DiscreteSACPolicy
-#####
-# Codex-modified 2026-08-18: expose only the final Bridge policy name.
 from tianshou.policy.modelfree.perfed_dc import PerFedDCPolicy
-# Codex-added 2026-05-19: export pFedMePolicy for MovieLens/EasyRL4Rec baselines.
 from tianshou.policy.modelfree.pfedme_ppo import pFedMePolicy
 from tianshou.policy.modelfree.bridgetd3 import BridgeTD3Policy
 from tianshou.policy.modelfree.bridgea2c import BridgeA2CPolicy
 from tianshou.policy.modelfree.bridgeppo import BridgePPOPolicy
-#####
 from tianshou.policy.imitation.base import ImitationPolicy
 from tianshou.policy.imitation.bcq import BCQPolicy
 from tianshou.policy.imitation.cql import CQLPolicy
@@ -63,7 +59,6 @@ __all__ = [
     "REDQPolicy",
     "DiscreteSACPolicy",
     'PerFedDCPolicy',
-    # Codex-added 2026-05-19: pFedMe baseline aligned with MuJoCo comparisons.
     'pFedMePolicy',
     "ImitationPolicy",
     "BCQPolicy",

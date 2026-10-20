@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 
 Author:
@@ -47,11 +46,6 @@ class Linear(nn.Module):
         self.embedding_dict = create_embedding_matrix(feature_columns, init_std, linear=True, sparse=False,
                                                       device=device)
 
-        #         nn.ModuleDict(
-        #             {feat.embedding_name: nn.Embedding(feat.dimension, 1, sparse=True) for feat in
-        #              self.sparse_feature_columns}
-        #         )
-        # .to("cuda:1")
         for tensor in self.embedding_dict.values():
             nn.init.normal_(tensor.weight, mean=0, std=init_std)
 
@@ -113,10 +107,6 @@ class BaseModel(nn.Module):
         self.dnn_feature_columns = dnn_feature_columns
 
         self.embedding_dict = create_embedding_matrix(dnn_feature_columns, init_std, sparse=False, device=device)
-        #         nn.ModuleDict(
-        #             {feat.embedding_name: nn.Embedding(feat.dimension, embedding_size, sparse=True) for feat in
-        #              self.dnn_feature_columns}
-        #         )
 
         self.linear_model = Linear(
             linear_feature_columns, self.feature_index, device=device)

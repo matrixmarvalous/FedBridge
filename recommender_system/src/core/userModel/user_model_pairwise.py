@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/27 3:31 下午
-# @Author  : Chongming GAO
-# @FileName: user_model_pairwise.py
+
 
 import torch
 from deepctr_torch.inputs import combined_dnn_input, build_input_features
@@ -66,7 +63,6 @@ class UserModel_Pairwise(UserModel):
                             activation=dnn_activation, l2_reg=l2_reg_dnn, dropout_rate=dnn_dropout, use_bn=dnn_use_bn,
                             init_std=init_std, device=device)
         self.last = nn.Linear(dnn_hidden_units[-1], 1, bias=False)
-        # self.out = PredictionLayer(task, task_dim=1)
         self.out = PredictionLayer(task)
 
 
@@ -101,7 +97,6 @@ class UserModel_Pairwise(UserModel):
 
         # sparse_embedding_list, dense_value_list = self.input_from_feature_columns(X, feature_columns,
         #                                                                           self.embedding_dict,
-        #                                                                           feature_index=feature_index)
         sparse_embedding_list, dense_value_list = input_from_feature_columns(X, feature_columns, self.embedding_dict,
                                                                              feature_index,
                                                                              support_dense=True, device=self.device)
@@ -144,8 +139,6 @@ class UserModel_Pairwise(UserModel):
         X_neg = x[:, num_features:]
 
 
-        # y_deepfm_pos = self._deepfm(X_pos, self.feature_columns, self.feature_index)
-        # y_deepfm_neg = self._deepfm(X_neg, self.feature_columns, self.feature_index)
         y_deepfm_pos = self.forward(X_pos)
         y_deepfm_neg = self.forward(X_neg)
 

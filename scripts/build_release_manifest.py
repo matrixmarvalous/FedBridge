@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: build or verify one checksum inventory for the bundle.
 from __future__ import annotations
 
 import argparse

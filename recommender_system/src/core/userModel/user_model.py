@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/26 9:50 上午
-# @Author  : Chongming GAO
-# @FileName: user_model.py
+
 import pickle
 import time
 
@@ -89,23 +86,14 @@ class UserModel(nn.Module):
                  callbacks=None, shuffle=True):
 
         model = self.train()
-        # loss_func_dict = self.loss_func_dict
         optim = self.optim
 
-        # if self.gpus:
-        #     print('parallel running on these gpus:', self.gpus)
-        #     model = torch.nn.DataParallel(model, device_ids=self.gpus)
-        #     batch_size *= len(self.gpus)  # input `batch_size` is batch_size per gpu
-        # else:
-        #     print(self.device)
         print("Training device is [{}]".format(self.device))
 
         train_loader = DataLoader(
             dataset=dataset_train.get_dataset_train(), shuffle=shuffle, batch_size=batch_size,
             num_workers=dataset_train.num_workers)
 
-        # train_loader = DataLoader(
-        #     dataset=dataset_train.get_dataset_train(), shuffle=False, batch_size=batch_size)
 
         sample_num = len(dataset_train)
         steps_per_epoch = (sample_num - 1) // batch_size + 1
@@ -115,7 +103,6 @@ class UserModel(nn.Module):
         callbacks = CallbackList(callbacks)
         callbacks.set_model(self)
         callbacks.on_train_begin()
-        # callbacks.set_model(self)
         if not hasattr(callbacks, 'model'):  # for tf1.4
             callbacks.__setattr__('model', self)
         callbacks.model.stop_training = False
@@ -145,7 +132,6 @@ class UserModel(nn.Module):
             train_result = {}
             try:
                 with tqdm(enumerate(train_loader), total=steps_per_epoch) as t:
-                    # for _, (x_user, x_item, neg_items, y_train) in t:
                     for i, (x, y, score) in t:
                         x = x.to(self.device).float()
                         y = y.to(self.device).float()
@@ -154,7 +140,6 @@ class UserModel(nn.Module):
                         loss = model.get_loss(x, y, score).squeeze()
 
                         optim.zero_grad()
-                        # loss = loss_func(y_pred, y.squeeze(), reduction='sum')
 
                         reg_loss = self.get_regularization_loss()
 
@@ -168,7 +153,6 @@ class UserModel(nn.Module):
                         optim.step()
 
                         if bool(torch.isnan(total_loss)):
-                            # print(i, x, y, score, loss, reg_loss, self.aux_loss)
                             model_parameters = {
                                 "i": i,
                                 "x": x,
@@ -183,16 +167,6 @@ class UserModel(nn.Module):
                                 pickle.dump(model_parameters, output_file)
                             raise ("there is nan, please check {}".format(MODEL_SAVE_PATH))
 
-                        # if verbose > 0:
-                        #     for name, metric_fun in self.metrics.items():
-                        #         if name not in train_result:
-                        #             train_result[name] = []
-                        #         train_result[name].append(metric_fun(
-                        #             y.cpu().data.numpy(),
-                        #             y_pred.cpu().data.numpy().astype("float64"),
-                        #             x_user[:, 0].cpu().data.numpy().astype(int)
-                        #         ))
-
 
             except KeyboardInterrupt:
                 t.close()
@@ -202,8 +176,6 @@ class UserModel(nn.Module):
             # Add epoch_logs
             epoch_logs["loss"] = total_loss_epoch / sample_num
 
-            # for name, result in train_result.items():
-            #     epoch_logs[name] = np.sum(result) / steps_per_epoch
 
             if dataset_val:
                 eval_result = self.evaluate_data(dataset_val, batch_size)
@@ -223,9 +195,6 @@ class UserModel(nn.Module):
                 eval_str = "{0}s - loss: {1: .4f}".format(
                     epoch_time, epoch_logs["loss"])
 
-                # for name in self.metrics:
-                #     eval_str += " - " + name + \
-                #                 ": {0: .4f}".format(epoch_logs[name])
 
                 if dataset_val:
                     for name in self.metric_fun:
@@ -260,20 +229,6 @@ class UserModel(nn.Module):
 
         assert u_all_item.shape[1] == len(dataset_val.x_columns)
 
-        # # 用户的所有评分
-        # if df_user is None:
-        #     u_all_item = torch.tensor(
-        #         np.concatenate((np.ones([len(df_item_val), 1]) * user,
-        #                         np.expand_dims(item_index, axis=-1),
-        #                         df_item_val.values), 1),
-        #         dtype=torch.float, device=self.device, requires_grad=False)
-        # else:
-        #     u_all_item = torch.tensor(
-        #         np.concatenate((np.ones([len(df_item_val), 1]) * user,
-        #                         df_user.loc[user].to_numpy() * np.array([[1]] * len(df_item_val)),
-        #                         np.expand_dims(item_index, axis=-1),
-        #                         df_item_val.values), 1),
-        #         dtype=torch.float, device=self.device, requires_grad=False)
 
         u_value = self.forward(u_all_item).detach().squeeze() # predicted value
 
@@ -281,12 +236,8 @@ class UserModel(nn.Module):
             if not hasattr(self, "n_rec"):
                 self.compile_UCB(len(u_value))
 
-            # with warnings.catch_warnings():
-            #     warnings.simplefilter("ignore")
             ucb_bound = (2 * np.log(self.n_rec) / self.n_each) ** 0.5
 
-            # ucb_bound[np.isnan(ucb_bound)] = 0
-            # ucb_bound[np.isinf(ucb_bound)] = u_value.max()
 
             u_value_ucb = u_value + torch.Tensor(ucb_bound).to(u_value.device)
         else:
@@ -297,15 +248,7 @@ class UserModel(nn.Module):
             value = self.softmax(u_value_ucb)
             index = torch.multinomial(value, k, replacement=False)
         else:
-            # value = u_value
-            # if min(value) < 0:
-            #     value = -min(value) + value
-            #     value = value / sum(value)
-            # Todo:
-            # index = u_value_ucb.argmax() # 预测分数的max
 
-            # value = u_value_ucb/sum(u_value_ucb)
-            # index = torch.multinomial(value, k, replacement=False)
 
             _, index = torch.topk(u_value_ucb, k)
 
@@ -317,7 +260,6 @@ class UserModel(nn.Module):
             self.n_rec += k
             self.n_each[index] += 1
 
-        # print(int(index), end=' ')
 
         recommendation = item_index[index]
         value_rec = u_value.cpu().numpy()[index]
@@ -342,7 +284,6 @@ class UserModel(nn.Module):
                 user_id = dataset_val.dataset_complete.x_numpy[:,dataset_val.user_col]
                 item_id = dataset_val.dataset_complete.x_numpy[:,dataset_val.item_col]
 
-                # xy_predict = pd.DataFrame([user_id, item_id, y_predict.squeeze()], columns={"user_id", "item_id", "y_pred"})
                 xy_predict = pd.DataFrame({"user_id":user_id, "item_id":item_id, "y_pred":y_complete_predict.squeeze()})
             else:
                 user_id = dataset_val.x_numpy[:, dataset_val.user_col]
@@ -352,7 +293,6 @@ class UserModel(nn.Module):
 
             xy_predict["y_true"] = y
             xy_predict = xy_predict.astype(dtype={"user_id": "int64", "item_id": "int64", "y_pred": "float64"})
-            # df_score = xy_predict.groupby("user_id").agg(list)
 
             eval_result.update(self.metric_fun_ranking(xy_predict, ground_truth))
 
@@ -366,10 +306,6 @@ class UserModel(nn.Module):
         """
         model = self.eval()
 
-        # dataset_predict.set_only_x(True)
-
-        # test_loader = DataLoader(dataset=dataset_predict, shuffle=False, batch_size=batch_size)
-        # test_loader = DataLoader(dataset=dataset_predict.get_dataset_eval(), shuffle=False, batch_size=batch_size)
 
         is_shuffle=False
         assert not is_shuffle
@@ -381,20 +317,9 @@ class UserModel(nn.Module):
 
         pred_ans = []
         with torch.no_grad():
-            # for _, x_test in enumerate(test_loader):
             for _, (x, y) in tqdm(enumerate(test_loader), total=steps_per_epoch, desc="Predicting data..."):
-                # if isinstance(x_test, list):
-                #     for i in range(len(x_test)):
-                #         if isinstance(x_test[i], list):
-                #             for j in range(len(x_test[i])):
-                #                 x_test[i][j] = x_test[i][j].to(self.device).float()
-                #         elif isinstance(x_test[i], torch.Tensor):
-                #             x_test[i] = x_test[i].to(self.device).float()
-                # else:
-                #     raise Exception("No!")
 
                 x = x.to(self.device).float()
-                # y = y.to(self.device).float()
 
                 y_pred = model.forward(x).cpu().data.numpy()  # .squeeze()
                 pred_ans.append(y_pred)

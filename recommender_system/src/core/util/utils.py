@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/9/11 4:24 下午
-# @Author  : Chongming GAO
-# @FileName: util.py
+
 import os
 import pickle
 from logzero import logger
@@ -38,10 +35,6 @@ def compute_action_distance(action: np.ndarray, actions_hist: np.ndarray,
         else:
             dist = np.linalg.norm(a)
     elif env_name == "KuaiEnv-v0":
-        # df_video_env = realenv.df_video_env
-        # list_feat = realenv.list_feat
-        # item_index = realenv.lbe_video.inverse_transform([action])
-        # item_index_hist = realenv.lbe_video.inverse_transform(actions_hist)
         df_dist_small = realenv.df_dist_small
         dist = df_dist_small.iloc[action, actions_hist].to_numpy()
     else: # Coat
@@ -66,8 +59,6 @@ def clip0(x):
     return np.amax(x, 0)
 
 
-
-
 @njit
 def find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, df_negative, is_rand=True, num_break=3):
     """
@@ -84,10 +75,7 @@ def find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, df_nega
                 num_try += 1
                 neg_u = neg_u_list[ind]
                 neg_i = neg_i_list[ind]
-                # neg_u = np.random.randint(max(user_ids) + 1)
-                # neg_i = np.random.randint(max(item_ids) + 1)
                 neg_v = mat_train[neg_u, neg_i]
-                # if neg_v <= 0:
 
                 ind = (ind + 1) % len(user_ids)
                 if neg_v < value or num_try >= num_break:
@@ -103,7 +91,6 @@ def find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, df_nega
             neg_i = item + 1
             while neg_i < mat_train.shape[1]:
                 neg_v = mat_train[user, neg_i]
-                # if neg_v <= 0:
                 if neg_v < value:
                     break
                 neg_i += 1
@@ -112,7 +99,6 @@ def find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, df_nega
                 neg_i = item - 1
                 while neg_i >= 0:
                     neg_v = mat_train[user, neg_i]
-                    # if neg_v <= 0:
                     if neg_v < value:
                         break
                     neg_i -= 1
@@ -120,7 +106,6 @@ def find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, df_nega
             df_negative[i, 0] = user
             df_negative[i, 1] = neg_i
             df_negative[i, 2] = neg_v
-
 
 
 def align_ab(df_a, df_b):
@@ -156,7 +141,7 @@ def align_pos_neg(df_positive, df_negative, can_divide:bool):
 
 def negative_sampling(df_train, df_item, df_user, y_name, is_rand=True, neg_in_train=False, neg_K=5, num_break=3, sample_neg_popularity=False):
     print("negative sampling...")
-    if neg_in_train: # 仅从已知样本中采负样本。
+    if neg_in_train:
         neg_index = df_train[y_name] == 0
         pos_index = ~neg_index
         df_negative = df_train.loc[neg_index]
@@ -177,8 +162,6 @@ def negative_sampling(df_train, df_item, df_user, y_name, is_rand=True, neg_in_t
         df_negative = pd.DataFrame([], columns=["user_id", "item_id", y_name])
         for k in tqdm(range(neg_K), desc="Negative sampling..."):
             array_k = np.zeros([len(df_train), 3])
-            # neg_u_list = np.random.choice(min(user_ids), max(user_ids) + 1, size=len(user_ids) * num_break)
-            # neg_i_list = np.random.choice(min(item_ids), max(item_ids) + 1, size=len(user_ids) * num_break)
             if sample_neg_popularity:
                 neg_u_list = np.random.choice(user_ids, size=len(user_ids) * num_break)
                 neg_i_list = np.random.choice(item_ids, size=len(user_ids) * num_break)
@@ -187,7 +170,6 @@ def negative_sampling(df_train, df_item, df_user, y_name, is_rand=True, neg_in_t
                 neg_i_list = np.random.choice(list(set(item_ids)), size=len(user_ids) * num_break)
             find_negative(user_ids, item_ids, neg_u_list, neg_i_list, mat_train, array_k, is_rand=is_rand, num_break=num_break)
             df_k = pd.DataFrame(array_k, columns=["user_id", "item_id", y_name])
-            # df_negative = df_negative.append(df_k, ignore_index=True)
             df_negative = pd.concat([df_negative, df_k])
 
         df_negative = df_negative.join(df_item, on=['item_id'], how="left")

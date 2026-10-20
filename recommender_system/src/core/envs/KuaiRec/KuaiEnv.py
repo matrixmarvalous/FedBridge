@@ -8,7 +8,6 @@ sys.path.extend(["./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 
 from src.core.envs.KuaiRec.KuaiData import KuaiData
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/KuaiRec"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 
@@ -41,8 +40,6 @@ class KuaiEnv(BaseEnv):
     def render(self, mode='human', close=False):
         history_action = self.history_action
         category = {k: self.list_feat_small[v] for k, v in history_action.items()}
-        # category_debug = {k:self.list_feat[v] for k,v in history_action.items()}
-        # return history_action, category, category_debug
         return self.cur_user, history_action, category
 
     def _determine_whether_to_leave(self, t, action):
@@ -52,7 +49,6 @@ class KuaiEnv(BaseEnv):
         window_actions = self.sequence_action[t - self.num_leave_compute:t]
         hist_categories_each = list(map(lambda x: self.list_feat_small[x], window_actions))
 
-        # hist_set = set.union(*list(map(lambda x: self.list_feat[x], self.sequence_action[t - self.num_leave_compute:t-1])))
 
         hist_categories = list(itertools.chain(*hist_categories_each))
         hist_dict = Counter(hist_categories)
@@ -61,8 +57,6 @@ class KuaiEnv(BaseEnv):
             if hist_dict[c] > self.leave_threshold:
                 return True
 
-        # if action in window_actions:
-        #     return True
 
         return False
     

@@ -147,8 +147,8 @@ class FedOffPolicyTrainer(ABC):
         comm: Any = None,                     # MPI communicator
         rank: int = 0,
         world_size: int = 1,
-        comm_times_per_epoch: int = 10,               # 更新多少次后通信一次
-        rota: Optional[list[int]] = None,     # 旋转拓扑
+        comm_times_per_epoch: int = 10,
+        rota: Optional[list[int]] = None,
         verbose_sync: bool = True,
         episode_per_collect: Optional[int] = None,
         train_fn: Optional[Callable[[int, int], None]] = None,
@@ -197,7 +197,7 @@ class FedOffPolicyTrainer(ABC):
         self.comm           = comm
         self.rank           = rank
         self.world_size     = world_size
-        self.comm_times_per_epoch  = comm_times_per_epoch       # 安全起见
+        self.comm_times_per_epoch  = comm_times_per_epoch
         self._comm_idx = 0
         self.rota           = rota if rota is not None else [1]
         self.verbose_sync   = verbose_sync
@@ -231,10 +231,9 @@ class FedOffPolicyTrainer(ABC):
 
         self.save_model_fn = save_model_fn
 
-        # 增加有关federated learning参数
-        self._update_cnt = 0              # 计数每次 policy 更新
-        self.comm_time = 0.0
 
+        self._update_cnt = 0
+        self.comm_time = 0.0
 
 
     def reset(self) -> None:
@@ -307,32 +306,7 @@ class FedOffPolicyTrainer(ABC):
         for callback in callbacks:
             callback.on_epoch_begin(self.epoch)
 
-        # # perform n step_per_epoch
-        # with progress(
-        #     total=self.step_per_epoch, desc=f"Epoch #{self.epoch}", **tqdm_config
-        # ) as t:
-        #     while t.n < t.total and not self.stop_fn_flag:
-        #         data: Dict[str, Any] = dict()
-        #         result: Dict[str, Any] = dict()
-        #         if self.train_collector is not None:
-        #             data, result, self.stop_fn_flag = self.train_step()
-        #             t.update(result["n/st"])
-        #             if self.stop_fn_flag:
-        #                 t.set_postfix(**data)
-        #                 break
-        #         else:
-        #             assert self.buffer, "No train_collector or buffer specified"
-        #             result["n/ep"] = len(self.buffer)
-        #             result["n/st"] = int(self.gradient_step)
-        #             t.update()
 
-        #         self.policy_update_fn(data, result)
-        #         t.set_postfix(**data)
-
-        #     if t.n <= t.total and not self.stop_fn_flag:
-        #         t.update()
-                # perform n step_per_epoch
-# 本 epoch 开始重置阈值计数
         if self.world_size > 1 and self.comm_times_per_epoch > 0:
             assert self.step_per_epoch and self.step_per_epoch > 0, \
                 "使用 comm_times_per_epoch 时必须设置正整数的 step_per_epoch"
@@ -357,24 +331,21 @@ class FedOffPolicyTrainer(ABC):
                     result["n/st"] = int(self.gradient_step)
                     t.update()
 
-                # === PPO 更新 ===
+
                 self.policy_update_fn(data, result)
 
-                # # === 🔥 MPI 通信逻辑 ===
-                # self._update_cnt += 1
-                # if self.world_size > 1 and self._update_cnt % self.comm_interval == 0:
-                # === 🔥 固定每个 epoch 通信 K 次：阈值指标触发 ===
+
                 if self.world_size > 1 and self.comm_times_per_epoch > 0:
-                    # 已跨过的阈值数：floor(K * t.n / step_per_epoch)，上限为 K
+
                     crossed = int((t.n * self.comm_times_per_epoch) // t.total)
                     if crossed > self.comm_times_per_epoch:
                         crossed = self.comm_times_per_epoch
 
-                    # 可能一次 collect 跨越多个阈值，用 while 补齐每一轮通信
+
                     while self._comm_idx < crossed:
                         round_id = self._comm_idx
     
-                        # 打包 bridge 网络参数
+
                         send_buf = np.concatenate([
                             p.data.cpu().numpy().ravel()
                             for p in self.policy.actor.parameters()
@@ -390,7 +361,7 @@ class FedOffPolicyTrainer(ABC):
     
                         avg_buf = 0.5 * (send_buf + recv_buf)
     
-                        # 写回参数到 bridge 网络
+
                         idx = 0
                         for p in self.policy.actor.parameters():
                             n = p.numel()
@@ -398,7 +369,6 @@ class FedOffPolicyTrainer(ABC):
                             idx += n
     
                         
-    
                         if self.verbose_sync and self.rank == 0:
                             print(
                                 f"[Epoch {self.epoch} | Comm {self._comm_idx+1}/{self.comm_times_per_epoch} | RoundID {round_id}] bridge synced",
@@ -408,7 +378,6 @@ class FedOffPolicyTrainer(ABC):
                         self._comm_idx += 1
 
 
-                # === 更新进度条 ===
                 t.set_postfix(**data)
 
             if t.n <= t.total and not self.stop_fn_flag:
@@ -476,7 +445,6 @@ class FedOffPolicyTrainer(ABC):
                 f"Epoch #{self.epoch}: test_reward: {rew:.6f} ± {rew_std:.6f},"
                 f" best_reward: {self.best_reward:.6f} ± "
                 f"{self.best_reward_std:.6f} in #{self.best_epoch}",
-                # flush=True
             )
         if not self.is_run:
             test_stat = {

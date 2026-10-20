@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: validate the external EasyRL4Rec assets used by the release runners.
 """Check the minimum MovieLens and DeepFM assets required by this release."""
 
 import argparse

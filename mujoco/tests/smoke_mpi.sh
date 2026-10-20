@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Codex-added 2026-08-14: explicit-seed end-to-end smoke command.
 set -euo pipefail
 
 : "${SEED:?Set a non-paper synthetic SEED for this smoke test}"

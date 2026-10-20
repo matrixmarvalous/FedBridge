@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-07-23: auditable FedBridge with two actors and one learned critic.
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass

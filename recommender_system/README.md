@@ -1,8 +1,4 @@
 # Recommender-system experiments
-
-<!-- Codex-modified 2026-09-10: replace the internal release notes with a
-concise usage guide; the previous version is preserved in the private archive. -->
-
 This directory contains the FedBridge experiments built on EasyRL4Rec for
 `MovieLensEnv-v0`. The supported settings are `hetero5` and `homo3`, and each
 experiment uses eight MPI ranks.

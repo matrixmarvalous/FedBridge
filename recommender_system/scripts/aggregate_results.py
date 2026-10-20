@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14
 """Aggregate anonymized EasyRL4Rec release runs and Student-t intervals.
 
 The script reads the rank logs in ``results/MovieLensEnv-v0/PPO/logs`` but

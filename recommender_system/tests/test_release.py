@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: release configuration, privacy and parser checks.
-# Codex-modified 2026-08-18: validate canonical Bridge names and structural
-# source-manifest completeness after the behavior-preserving rename.
 from __future__ import annotations
 
 import ast
@@ -30,8 +27,6 @@ SYNTHETIC_TEST_SEED = 7  # A test fixture only; not an author experiment seed.
 
 
 class ReleaseTests(unittest.TestCase):
-    # Codex-added 2026-08-23: guard against the rank-divergent progress padding
-    # that let some clients skip the final collective and deadlock their peers.
     def test_collective_trainers_pad_progress_only_after_sampling_loop(self) -> None:
         trainer_dir = RELEASE_DIR / "src" / "tianshou" / "tianshou" / "trainer"
         for filename in ("fedavgbase.py", "perfeddcbase.py", "pfedmebase.py"):
@@ -50,8 +45,6 @@ class ReleaseTests(unittest.TestCase):
                     msg=f"progress padding remains inside while loop: {filename}",
                 )
 
-    # Codex-added 2026-08-23: generated jobs must prove application success;
-    # timeout text must never be accepted as a clean scheduler log.
     def test_siyuan_jobs_use_success_only_markers_and_detect_timeouts(self) -> None:
         generator = (PUBLIC_RELEASE_ROOT / "scripts" / "prepare_siyuan_jobs.py").read_text(
             encoding="utf-8"
@@ -74,9 +67,6 @@ class ReleaseTests(unittest.TestCase):
         ):
             self.assertIsNotNone(fatal_log_re.search(signature), msg=signature)
 
-    # Codex-added 2026-09-09: lambda_kl=0 is the Individual configuration.  All
-    # KL calls and bridge optimizer steps must remain inside the coupling guard
-    # so 0 * inf cannot silently yield a non-finite training loss.
     def test_zero_kl_path_skips_bridge_computation(self) -> None:
         policy_path = (
             RELEASE_DIR
@@ -232,9 +222,6 @@ class ReleaseTests(unittest.TestCase):
                 self.assertEqual(row["source_sha256"], "withheld")
             release_file = RELEASE_DIR / row["release_path"]
             self.assertTrue(release_file.is_file())
-            # Codex-modified 2026-09-09: validate the recorded bytes, not only
-            # the checksum's shape. This catches a stale source manifest after
-            # a bounded release-only fix.
             self.assertEqual(
                 hashlib.sha256(release_file.read_bytes()).hexdigest(),
                 row["release_sha256"],
@@ -253,8 +240,6 @@ class ReleaseTests(unittest.TestCase):
             )
 
     def test_release_paths_are_casefold_unique(self) -> None:
-        # Codex-added 2026-08-19: prevent case-insensitive filesystem clashes
-        # between the canonical bridgeppo.py and any legacy standalone module.
         relative_paths = [
             path.relative_to(RELEASE_DIR).as_posix()
             for path in RELEASE_DIR.rglob("*")
@@ -281,7 +266,7 @@ class ReleaseTests(unittest.TestCase):
             text = (RELEASE_DIR / "examples" / "policy" / filename).read_text(
                 encoding="utf-8"
             )
-            self.assertIn("make MPI/Slurm failure status reliable", text)
+            self.assertRegex(text, r"(?ms)except Exception as e:.*?^\s+raise\s*$")
             self.assertNotRegex(text, r"(?m)^\s*args\.seed\s*=\s*\d{3,}\s*$")
 
     def test_log_parser_requires_all_ranks_for_an_epoch(self) -> None:

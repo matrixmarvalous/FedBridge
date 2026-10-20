@@ -13,7 +13,6 @@ sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.BaseData import BaseData
 from src.core.envs.KuaiRec.preprocessing_kuairec import get_df_data
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/KuaiRec"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 PRODATAPATH = os.path.join(ROOTPATH, "data_processed")
@@ -40,7 +39,6 @@ class KuaiData(BaseData):
         df_data = get_df_data(filename,
                               usecols=['user_id', 'item_id', 'timestamp', 'watch_ratio_normed', 'duration_normed'])
 
-        # df_data['duration_normed'] = df_data['duration_ms'] / 1000
 
         # load feature info
         list_feat, df_feat = KuaiData.load_category()
@@ -54,9 +52,6 @@ class KuaiData(BaseData):
 
         df_data = df_data.join(df_feat, on=['item_id'], how="left")
 
-        # if is_require_feature_domination:
-        #     item_feat_domination = self.get_domination(df_data, df_item)
-        #     return df_data, df_user, df_item, list_feat, item_feat_domination
 
         return df_data, df_user, df_item, list_feat
 
@@ -122,7 +117,6 @@ class KuaiData(BaseData):
             df_user[col] = df_user[col].map(lambda x: chr(0) if x == 'UNKNOWN' else x)
             lbe = LabelEncoder()
             df_user[col] = lbe.fit_transform(df_user[col])
-            # print(lbe.classes_)
             if chr(0) in lbe.classes_.tolist() or -124 in lbe.classes_.tolist():
                 assert lbe.classes_[0] in {-124, chr(0)}
                 # do not add one
@@ -132,7 +126,6 @@ class KuaiData(BaseData):
             df_user.loc[df_user[col].isna(), col] = -124
             lbe = LabelEncoder()
             df_user[col] = lbe.fit_transform(df_user[col])
-            # print(lbe.classes_)
             if chr(0) in lbe.classes_.tolist() or -124 in lbe.classes_.tolist():
                 assert lbe.classes_[0] in {-124, chr(0)}
                 # do not add one
@@ -218,7 +211,6 @@ class KuaiData(BaseData):
         df_feat0.feat = df_feat0.feat.map(eval)
 
         list_feat = df_feat0.feat.to_list()
-        # df_feat = pd.DataFrame(list_feat, columns=['feat0', 'feat1', 'feat2', 'feat3'], dtype=int)
         df_feat = pd.DataFrame(list_feat, columns=['feat0', 'feat1', 'feat2', 'feat3'])
         df_feat.index.name = "item_id"
         df_feat[df_feat.isna()] = -1
@@ -250,8 +242,6 @@ class KuaiData(BaseData):
     def get_similarity_mat(list_feat):
         similarity_mat_path = os.path.join(PRODATAPATH, "similarity_mat_video.csv")
         if os.path.isfile(similarity_mat_path):
-            # with open(similarity_mat_path, 'rb') as f:
-            #     similarity_mat = np.load(f, allow_pickle=True, fix_imports=True)
             print(f"loading similarity matrix... from {similarity_mat_path}")
             df_sim = pd.read_csv(similarity_mat_path, index_col=0)
             df_sim.columns = df_sim.columns.astype(int)
@@ -297,9 +287,6 @@ class KuaiData(BaseData):
             return df_dist_small
 
         return None
-
-
-
 
 
 if __name__ == "__main__":

@@ -16,7 +16,6 @@ def _is_batch_set(obj: Any) -> bool:
     # or 1-D np.ndarray with object type,
     # where each element is a dict/Batch object
     if isinstance(obj, np.ndarray):  # most often case
-        # "for element in obj" will just unpack the first dimension,
         # but obj.tolist() will flatten ndarray of objects
         # so do not use obj.tolist()
         if obj.shape == ():
@@ -30,12 +29,6 @@ def _is_batch_set(obj: Any) -> bool:
 
 
 def _is_scalar(value: Any) -> bool:
-    # check if the value is a scalar
-    # 1. python bool object, number object: isinstance(value, Number)
-    # 2. numpy scalar: isinstance(value, np.generic)
-    # 3. python object rather than dict / Batch / tensor
-    # the check of dict / Batch is omitted because this only checks a value.
-    # a dict / Batch will eventually check their values
     if isinstance(value, torch.Tensor):
         return value.numel() == 1 and not value.shape
     else:
@@ -66,7 +59,6 @@ def _to_array_with_correct_type(obj: Any) -> np.ndarray:
         obj_array = obj_array.astype(object)
     if obj_array.dtype == object:
         # scalar ndarray with object obj type is very annoying
-        # a=np.array([np.array({}, dtype=object), np.array({}, dtype=object)])
         # a is not array([{}, {}], dtype=object), and a[0]={} results in
         # something very strange:
         # array([{}, array({}, dtype=object)], dtype=object)
@@ -149,7 +141,6 @@ def _parse_value(obj: Any) -> Optional[Union["Batch", np.ndarray, torch.Tensor]]
         if _is_batch_set(obj):
             obj = Batch(obj)  # list of dict / Batch
         else:
-            # None, scalar, normal obj list (main case)
             # or an actual list of objects
             try:
                 obj = _to_array_with_correct_type(obj)
@@ -460,7 +451,6 @@ class Batch:
                 if len(batch) > 0:
                     batch_list.append(Batch(batch))
             elif isinstance(batch, Batch):
-                # x.is_empty() means that x is Batch() and should be ignored
                 if not batch.is_empty():
                     batch_list.append(batch)
             else:
@@ -469,7 +459,6 @@ class Batch:
             return
         batches = batch_list
         try:
-            # x.is_empty(recurse=True) here means x is a nested empty batch
             # like Batch(a=Batch), and we have to treat it as length zero and
             # keep it.
             lens = [
@@ -517,7 +506,6 @@ class Batch:
                 if len(batch) > 0:
                     batch_list.append(Batch(batch))
             elif isinstance(batch, Batch):
-                # x.is_empty() means that x is Batch() and should be ignored
                 if not batch.is_empty():
                     batch_list.append(batch)
             else:

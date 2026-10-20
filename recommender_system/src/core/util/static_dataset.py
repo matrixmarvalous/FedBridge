@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2022/11/14 14:31
-# @Author  : Chongming GAO
-# @FileName: static_dataset.py
 import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset

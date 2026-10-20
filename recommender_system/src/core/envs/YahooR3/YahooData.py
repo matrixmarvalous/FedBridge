@@ -7,7 +7,6 @@ import numpy as np
 sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.BaseData import BaseData, get_distance_mat
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/YahooR3"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 PRODATAPATH = os.path.join(ROOTPATH, "data_processed")

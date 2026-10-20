@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-23: audit fixed-tuple Siyuan jobs, application outputs,
-# zero-shot checkpoint reloads and basic metric sanity without exposing seeds.
 """Check a private Siyuan job bundle prepared by ``prepare_siyuan_jobs.py``.
 
 The hard checks establish scheduler/application completion, expected output
@@ -52,11 +50,7 @@ NUMPY_SCALAR_RE = re.compile(
 FATAL_LOG_RE = re.compile(
     r"Traceback \(most recent call last\)|MPI_ABORT|OUT_OF_MEMORY|"
     r"out of memory|oom-kill|Segmentation fault|ModuleNotFoundError|"
-    # Codex-modified 2026-09-09: a run with finite evaluation can still have
-    # non-finite optimizer diagnostics (the former zero-KL Individual path did).
     r"\bloss(?:/[A-Za-z0-9_.-]+)?\s*=\s*(?:nan|[+-]?inf)\b|"
-    # Codex-modified 2026-08-23: Slurm time-limit cancellation is fatal even
-    # when an EXIT trap or subprocess happens to leave a zero shell status.
     r"ImportError:|Killed process|DUE TO TIME LIMIT|\bTIMEOUT\b|"
     r"CANCELLED(?: AT|.*TIME LIMIT)",
     re.IGNORECASE,
@@ -442,8 +436,6 @@ def audit_recommender_cell(manifest, entry, index, profile, report):
         require(0.0 < length <= 30.0, "interaction length is outside (0, 30]")
         require(0.0 <= coverage <= 1.0, "coverage is outside [0, 1]")
     if profile == "full":
-        # Codex-modified 2026-09-10: keep self-contained runtime sanity checks
-        # after removing historical result tables from the public repository.
         for metric in REC_METRIC_KEYS:
             means = []
             for epoch in range(1, expected_epochs + 1):

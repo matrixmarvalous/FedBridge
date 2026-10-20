@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     zanshuxun, zanshuxun@aliyun.com

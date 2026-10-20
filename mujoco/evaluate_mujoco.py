@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: thin checkpoint-only D--F evaluator for the copied
-# audited MuJoCo implementation. Intended caller: README evaluation command.
-# Codex-modified 2026-08-18: load the public Bridge checkpoint schema.
 from __future__ import annotations
 
 import argparse

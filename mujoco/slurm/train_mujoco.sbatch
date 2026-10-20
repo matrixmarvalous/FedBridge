@@ -1,15 +1,4 @@
 #!/usr/bin/env bash
-# Codex-added 2026-08-14: Siyuan-1 8-client / 16-core Slurm template.
-# Codex-modified 2026-08-18: activate the public FedBridge environment name.
-# Codex-modified 2026-08-19: forward the optional structural smoke-test flag.
-#SBATCH --job-name=fedbridge-mujoco
-#SBATCH --partition=64c512g
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
-#SBATCH --cpus-per-task=2
-#SBATCH --time=04:00:00
-#SBATCH --output=.codex_hpc/jobs/%x-%j.out
-#SBATCH --error=.codex_hpc/jobs/%x-%j.err
 
 set -euo pipefail
 

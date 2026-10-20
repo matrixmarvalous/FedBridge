@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/27 3:31 下午
-# @Author  : Chongming GAO
-# @FileName: user_model_pairwise.py
+
 
 import torch
 from deepctr_torch.inputs import combined_dnn_input, build_input_features
@@ -75,7 +72,6 @@ class UserModel_Pairwise_Variance(UserModel_Variance):
                        activation=dnn_activation, l2_reg=l2_reg_dnn, dropout_rate=dnn_dropout, use_bn=dnn_use_bn,
                        init_std=init_std, device=device)
         self.last = nn.Linear(dnn_hidden_units[-1], 1, bias=False)
-        # self.out = PredictionLayer(task, task_dim=1)
         self.out = PredictionLayer(task)
 
         if len(dnn_hidden_units_var) > 0:
@@ -116,64 +112,8 @@ class UserModel_Pairwise_Variance(UserModel_Variance):
         self.to(device)
         
         
-#     def _debug_check_indices(self, X, feature_columns):
-#         """
-#         打印每个稀疏特征的取值范围与其 embedding 的词表大小；
-#         一旦发现 OOB（越界）或缺失 embedding 条目，立刻抛错定位。
-#         兼容 nn.ModuleDict（无 .get 方法）。
-#         """
-#         import torch
-
-#         bad = []
-#         for feat in feature_columns:
-#             name = getattr(feat, "name", None)
-#             emb_name = getattr(feat, "embedding_name", None)
-
-#             # 仅检查有 embedding 的稀疏列
-#             if not name or not emb_name:
-#                 continue
-#             if name not in self.feature_index:
-#                 print(f"[CHECK] feat={name} 不在 feature_index，跳过。")
-#                 continue
-
-#             col = self.feature_index[name]
-#             idx = X[:, col]
-#             if torch.is_floating_point(idx):
-#                 idx = idx.long()
-
-#             # 防止 GPU 张量报错，统一到 CPU 上求 min/max
-#             idx_cpu = idx.detach().to("cpu")
-#             vmin = int(idx_cpu.min().item())
-#             vmax = int(idx_cpu.max().item())
-
-#             # ModuleDict 用 "in" + 索引访问
-#             if emb_name in self.embedding_dict:
-#                 emb = self.embedding_dict[emb_name]
-#                 vocab = int(emb.num_embeddings)
-#                 pad = getattr(emb, "padding_idx", None)
-#                 print(
-#                     f"[CHECK] feat={name:<16} emb={emb_name:<16} "
-#                     f"min={vmin:<6} max={vmax:<6} vocab={vocab:<6} padding_idx={pad}"
-#                 )
-#                 if vmin < 0 or vmax >= vocab:
-#                     bad.append((name, vmin, vmax, vocab))
-#             else:
-#                 # 打印可用键帮助对位
-#                 known = list(self.embedding_dict.keys())
-#                 print(f"[CHECK] feat={name} emb={emb_name} 未在 embedding_dict 中找到；现有键示例: {known[:8]}")
-#                 bad.append((name, vmin, vmax, -1))
-
-#         if bad:
-#             raise RuntimeError(f"OOB/缺失 embedding 定位：{bad}")
-
-
-
     def _deepfm(self, X, feature_columns, feature_index):
 
-        # sparse_embedding_list, dense_value_list = self.input_from_feature_columns(X, feature_columns,
-        #                                                                           self.embedding_dict,
-        #                                                                           feature_index=feature_index)
-        # self._debug_check_indices(X, feature_columns)
       
         sparse_embedding_list, dense_value_list = input_from_feature_columns(X, feature_columns, self.embedding_dict,
                                                                              feature_index,
@@ -211,7 +151,7 @@ class UserModel_Pairwise_Variance(UserModel_Variance):
             var_output = dnn_output
         log_var = self.last_var(var_output)
 
-        # todo: 放缩 【-10, 0.5]
+
         softplus = nn.Softplus()
         log_var = self.max_logvar - softplus(self.max_logvar - log_var)
         log_var = self.min_logvar + softplus(log_var - self.min_logvar)
@@ -225,8 +165,6 @@ class UserModel_Pairwise_Variance(UserModel_Variance):
         X_pos = x[:, :num_features]
         X_neg = x[:, num_features:]
 
-        # y_deepfm_pos = self._deepfm(X_pos, self.feature_columns, self.feature_index)
-        # y_deepfm_neg = self._deepfm(X_neg, self.feature_columns, self.feature_index)
         y_deepfm_pos, log_var_pos = self.forward(X_pos)
         y_deepfm_neg, log_var_neg = self.forward(X_neg)
 

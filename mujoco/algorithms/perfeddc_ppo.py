@@ -1,5 +1,3 @@
-# Codex-modified 2026-08-18: align dormant dual-policy names and metric keys
-# with the Bridge terminology; PerFedDC update behavior is unchanged.
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -7,20 +5,7 @@ from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
 from torch.distributions import kl_divergence
 
-################################## set device ##################################
-# print("============================================================================================")
-# # set device to cpu or cuda
-# device = torch.device('cpu')
-# if(torch.cuda.is_available()): 
-#     device = torch.device('cuda:0') 
-#     torch.cuda.empty_cache()
-#     print("Device set to : " + str(torch.cuda.get_device_name(device)))
-# else:
-#     print("Device set to : cpu")
-# print("============================================================================================")
 
-
-################################## PPO Policy ##################################
 class RolloutBuffer:
     def __init__(self):
         self.actions = []
@@ -37,7 +22,6 @@ class RolloutBuffer:
         del self.rewards[:]
         del self.is_terminals[:]
         del self.state_values[:]
-
 
 
 class ActorCritic(nn.Module):
@@ -158,15 +142,7 @@ class perFedDC_PPO:
         self.policy_priv_old = ActorCritic(state_dim, action_dim, has_continuous_action_space, action_std_init, device).to(device)
         self.policy_priv_old.load_state_dict(self.policy_priv.state_dict())
         
-        # create policy_hat
-#         self.policy_hat = ActorCritic(state_dim, action_dim, has_continuous_action_space, action_std_init, device).to(device)
-#         self.optimizer_bridge = torch.optim.Adam([
-#                         {'params': self.policy_bridge.actor.parameters(), 'lr': lr_actor},
-#                         {'params': self.policy_bridge.critic.parameters(), 'lr': lr_critic}
-#                     ])
 
-#         self.policy_bridge_old = ActorCritic(state_dim, action_dim, has_continuous_action_space, action_std_init, device).to(device)
-#         self.policy_bridge_old.load_state_dict(self.policy_bridge.state_dict())
         self.policy_hat = ActorCritic(state_dim, action_dim, has_continuous_action_space, action_std_init, device).to(device)
         self.policy_hat.load_state_dict(self.policy_priv.state_dict())
         for p in self.policy_hat.parameters():
@@ -229,7 +205,7 @@ class perFedDC_PPO:
 
     def update(self):
         # Monte Carlo estimate of returns
-        metrics = {                     # 用来累计后返回给主循环
+        metrics = {
         "Loss/priv_total": 0.0, "Loss/bridge_total": 0.0,
         "Loss/priv_value": 0.0, "Loss/bridge_value": 0.0,
         "Loss/priv_policy": 0.0, "Loss/bridge_policy": 0.0,
@@ -262,7 +238,7 @@ class perFedDC_PPO:
         # Optimize private policy for K epochs
         for _ in range(self.K_epochs):
 
-            # ====== 更新私有策略 ======
+
             # Evaluating old actions and values
             logprobs_priv, state_values, dist_entropy_priv = self.policy_priv.evaluate(old_states, old_actions)
 
@@ -276,22 +252,13 @@ class perFedDC_PPO:
             surr1 = ratios * advantages
             surr2 = torch.clamp(ratios, 1-self.eps_clip, 1+self.eps_clip) * advantages
             
-                        # PPO 本身：与原来一样
+
             loss_ppo = -torch.min(surr1, surr2) + 0.5*self.MseLoss(state_values, rewards) - 0.01*dist_entropy_priv
-            # ----- 新增 L2 正则 -----
+
             l2 = sum((p_theta - p_hat).pow(2).sum()
                      for p_theta, p_hat in zip(self.policy_priv.parameters(), self.policy_hat.parameters()))
             loss = loss_ppo +  self.lambda_l2 * l2
 
-            # with torch.no_grad():
-            #     for p_hat, p_theta in zip(self.policy_hat.parameters(), self.policy_priv.parameters()):
-            #         p_hat.sub_(self.beta * (p_hat - p_theta))
-            # with torch.no_grad():
-            #     # 区分参数属于 actor 还是 critic → 选对应步长 η
-            #     for (name, p_hat), p_theta in zip(self.policy_hat.named_parameters(),
-            #                                       self.policy_priv.named_parameters()):
-            #         eta = self.lr_actor if "actor" in name else self.lr_critic
-            #         p_hat.sub_(eta * self.beta * (p_hat - p_theta))
 
             with torch.no_grad():
                 for p_hat, p_theta in zip(self.policy_hat.actor.parameters(), self.policy_priv.actor.parameters()):
@@ -315,8 +282,6 @@ class perFedDC_PPO:
         
         return metrics
     
-    # def save(self, checkpoint_path):
-    #     torch.save(self.policy_priv_old.state_dict(), checkpoint_path)
     def save(self, checkpoint_path):
         torch.save({
             'policy_priv_old_state_dict': self.policy_priv_old.state_dict()
@@ -327,5 +292,3 @@ class perFedDC_PPO:
         self.policy_priv.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
         
-       
-

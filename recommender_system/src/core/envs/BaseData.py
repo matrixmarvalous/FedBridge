@@ -52,8 +52,6 @@ class BaseData(ABC):
         else: # multi-hot for kuairec and kuairand
             df_item_filtered = df_item.filter(regex="^feat", axis=1)
 
-            # df_item_flat = df_item_filtered.to_numpy().reshape(-1)
-            # df_item_nonzero = df_item_flat[df_item_flat>0]
 
             feat_train = df_data.loc[df_data[yname] >= threshold, df_item_filtered.columns.to_list()]
             cats_train = feat_train.to_numpy().reshape(-1)
@@ -107,7 +105,6 @@ def compute_exposure_each_user(distance_mat: np.ndarray,
         start_index = max(0, i - window)
         t_diff = timestamp[index_u[i]] - timestamp[index_u[start_index:i]]
         t_diff[t_diff == 0] = 1  # important!
-        # dist_hist = np.fromiter(map(lambda x: distance_mat[x, video], video_u[:i]), np.float)
 
         dist_hist = np.zeros(min(window, i))
         for ind, j in enumerate(range(start_index, i)):

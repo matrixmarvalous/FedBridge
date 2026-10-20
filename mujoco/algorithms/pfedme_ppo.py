@@ -4,7 +4,6 @@ from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
 
 
-################################## PPO Policy ##################################
 class RolloutBuffer:
     def __init__(self):
         self.actions = []
@@ -144,7 +143,6 @@ class pFedMe_PPO:
 
         self.buffer = RolloutBuffer()
 
-        # personalized (theta)
         self.policy_priv = ActorCritic(
             state_dim, action_dim, has_continuous_action_space, action_std_init, device
         ).to(device)
@@ -158,7 +156,6 @@ class pFedMe_PPO:
         ).to(device)
         self.policy_priv_old.load_state_dict(self.policy_priv.state_dict())
 
-        # global (w), updated by server aggregation
         self.policy_global = ActorCritic(
             state_dim, action_dim, has_continuous_action_space, action_std_init, device
         ).to(device)

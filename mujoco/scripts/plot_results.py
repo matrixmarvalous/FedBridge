@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: dynamic plotting for user-supplied runs; intended
-# caller: README post-processing command. No paper seed values are embedded.
 from __future__ import annotations
 
 import argparse

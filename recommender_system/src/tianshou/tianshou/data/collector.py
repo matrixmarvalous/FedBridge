@@ -424,7 +424,6 @@ class AsyncCollector(Collector):
         preprocess_fn: Optional[Callable[..., Batch]] = None,
         exploration_noise: bool = False,
     ) -> None:
-        # assert env.is_async
         warnings.warn("Using async setting may collect extra transitions into buffer.")
         super().__init__(
             policy,

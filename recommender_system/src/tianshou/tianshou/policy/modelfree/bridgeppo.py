@@ -74,19 +74,15 @@ class BridgePPOPolicy(A2CPolicy):
         value_clip: bool = False,
         advantage_normalization: bool = True,
         recompute_advantage: bool = False,
-        ####
         actor_bridge: Optional[torch.nn.Module] = None,
         optim_bridge: Optional[torch.optim.Optimizer] = None,
         lambda_kl: float = 0.05,
-        ####
         **kwargs: Any,
     ) -> None:
         super().__init__(actor, critic, optim, dist_fn, **kwargs)
-        ####
         self.actor_bridge = actor_bridge
         self.optim_bridge = optim_bridge
         self.lambda_kl = lambda_kl
-        ####
         self._eps_clip = eps_clip
         assert dual_clip is None or dual_clip > 1.0, \
             "Dual-clip PPO parameter should greater than 1.0."
@@ -96,7 +92,6 @@ class BridgePPOPolicy(A2CPolicy):
         self._recompute_adv = recompute_advantage
         self._actor_critic: ActorCritic
         
-
 
     def process_fn(
         self, batch: Batch, buffer: ReplayBuffer, indices: np.ndarray
@@ -116,10 +111,6 @@ class BridgePPOPolicy(A2CPolicy):
         losses, clip_losses, vf_losses, ent_losses = [], [], [], []
         optim_RL, optim_state = self.optim
         optim_bridge = self.optim_bridge  ##
-        # Codex-modified 2026-09-09: the historical Individual baseline reused
-        # BridgePPO with lambda_kl=0.  Computing KL anyway can produce inf and
-        # then 0 * inf == nan.  Skip the mathematically inactive branch so the
-        # personal update is exactly the standard PPO update in ppo.py.
         bridge_coupling = float(self.lambda_kl) != 0.0
         if bridge_coupling and (self.actor_bridge is None or optim_bridge is None):
             raise RuntimeError(
@@ -138,7 +129,7 @@ class BridgePPOPolicy(A2CPolicy):
                         out_bridge = self.actor_bridge(obs_emb)
 
                         if isinstance(out_bridge, tuple):
-                            # 连续动作：直接传给 dist_fn
+
                             dist_bridge = self.dist_fn(*out_bridge)
                         else:
                             logits_bridge = out_bridge
@@ -146,7 +137,6 @@ class BridgePPOPolicy(A2CPolicy):
                                 logits_bridge = logits_bridge * minibatch.mask
                             dist_bridge = self.dist_fn(logits_bridge)
                             
-                ###### end
                 if self._norm_adv:
                     mean, std = minibatch.adv.mean(), minibatch.adv.std()
                     minibatch.adv = (minibatch.adv -
@@ -177,14 +167,11 @@ class BridgePPOPolicy(A2CPolicy):
                     vf_loss = (minibatch.returns - value).pow(2).mean()
                 # calculate regularization and overall loss
                 ent_loss = dist.entropy().mean()
-                ##### calculate kl_divergence for private actor
-                # kl_priv = F.kl_div(dist.log_prob(minibatch.act), log_prob_bridge, reduction='batchmean', log_target=True)
                 loss = clip_loss + self._weight_vf * vf_loss \
                     - self._weight_ent * ent_loss
                 if bridge_coupling:
                     kl_priv = kl_divergence(dist, dist_bridge).mean()
                     loss = loss + self.lambda_kl * kl_priv
-                ####### end
                 optim_RL.zero_grad()
                 optim_state.zero_grad()
                 loss.backward()
@@ -240,7 +227,6 @@ class BridgePPOPolicy(A2CPolicy):
                     loss_bridge.backward()
                     optim_bridge.step()
 
-                #### end
         return {
             "loss": losses,
             "loss/clip": clip_losses,

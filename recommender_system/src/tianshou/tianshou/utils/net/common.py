@@ -525,7 +525,6 @@ def get_dict_state_decorator(
             if original_shape[keys[0]] == obs[keys[0]].shape:
                 # No batch dim
                 new_obs = torch.Tensor([obs[k] for k in keys]).flatten()
-                # new_obs = torch.Tensor([obs[k] for k in keys]).reshape(1, -1)
             else:
                 bsz = obs[keys[0]].shape[0]
                 new_obs = torch.cat(

@@ -1,6 +1,4 @@
 
-# @Author  : Chongming GAO
-# @FileName: collector_set.py
 
 from typing import Callable, Optional, Dict, Any, Union, List
 from src.tianshou.tianshou.data import Batch, VectorReplayBuffer, ReplayBuffer
@@ -9,15 +7,6 @@ import sys
 sys.path.extend(["./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.collector.collector import Collector
 
-# class Exec_Each_Collector(object):
-#     def __init__(self, func):
-#         self.func = func
-#
-#     def __get__(self, instance, owner, *args, **kwargs):
-#         for collector in instance.collector_list:
-#             collector_func = getattr(collector, self.func.__name__)
-#             collector_func(*args, **kwargs)
-#         return partial(self.func, self=instance)
 
 class CollectorSet(object):
     def __init__(self, policy, envs_dict, buffer_size, env_num,

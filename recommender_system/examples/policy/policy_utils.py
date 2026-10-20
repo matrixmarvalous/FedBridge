@@ -23,19 +23,13 @@ from src.core.util.inputs import get_dataset_columns
 from src.core.userModel.user_model_ensemble import EnsembleModel
 from src.core.envs.Simulated_Env.base import BaseSimulatedEnv
 
-# os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 from src.core.util.data import get_true_env
 from src.core.evaluation.evaluator import Evaluator_Feat, Evaluator_Coverage_Count, Evaluator_User_Experience, save_model_fn
 from src.core.evaluation.loggers import LoggerEval_Policy
 
-# from src.tianshou.tianshou.data.buffer.base import 
 from src.tianshou.tianshou.data import ReplayBuffer, VectorReplayBuffer, Batch
 from src.tianshou.tianshou.env import DummyVectorEnv
-# Codex-modified 2026-05-19: original import retained in backup
-# policy_utils.codex_backup_20260519_164641.py; added pfedme_trainer.
-# Codex-modified 2026-08-18: route the final Bridge PPO name through the
-# existing on-policy Bridge trainer; numerical training behavior is unchanged.
 from src.tianshou.tianshou.trainer import onpolicy_trainer, offpolicy_trainer, fedonpolicy_trainer, fedonpolicy_push_avg_trainer, fedbridgeavg_trainer, perfeddc_trainer, pfedme_trainer, fedavgonpolicy_trainer, fedoffpolicy_trainer, fedbridgeoffp_trainer, fedbridgeonp_trainer, fedbridgehoffp_trainer, fedbridgehonp_trainer
 from src.tianshou.tianshou.trainer.offline import offline_trainer
 
@@ -48,11 +42,7 @@ def get_args_all(trainer="onpolicy"):
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, required=True)
     parser.add_argument("--user_model_name", type=str, default="DeepFM")
-    # Codex-modified 2026-08-14: public runs require an author/user-selected
-    # seed; the paper's concrete seed values are not embedded in this bundle.
     parser.add_argument('--seed', required=True, type=int)
-    # Codex-added 2026-05-21: allow Slurm seed-sweep jobs to suppress tqdm output
-    # while preserving the default interactive behavior for existing commands.
     parser.add_argument('--quiet_progress', action='store_true', default=False)
     parser.add_argument('--cuda', default=0, type=int)
 
@@ -115,7 +105,6 @@ def get_args_all(trainer="onpolicy"):
     parser.add_argument("--num_filters", type=int, default=16)
     parser.add_argument("--dropout_rate", type=float, default=0.1)
     # State_tracker SASRec
-    # parser.add_argument("--dropout_rate", type=float, default=0.1)
     parser.add_argument("--num_heads", type=int, default=1)
     # State_tracker nextitnet
     parser.add_argument("--dilations", type=str, default='[1, 2, 1, 2, 1, 2]')
@@ -149,9 +138,8 @@ def get_args_all(trainer="onpolicy"):
     return args
 
 
-def prepare_dir_log(args):   ### 20250914新版prepare_dir_log函数
-    # 1) 目录
-    # Codex-modified 2026-08-14: allow a release-local or external output root.
+def prepare_dir_log(args):
+
     output_root = os.environ.get("EASYRL4REC_OUTPUT_ROOT", "saved_models")
     MODEL_SAVE_PATH = os.path.join(output_root, args.env, args.model_name)
     create_dirs = [
@@ -162,9 +150,7 @@ def prepare_dir_log(args):   ### 20250914新版prepare_dir_log函数
     ]
     create_dir(create_dirs)
 
-    # 2) 运行名与目录
-    # Codex-modified 2026-08-14: the release launcher supplies one common,
-    # seed-free stamp so MPI ranks cannot split logs across second boundaries.
+
     nowtime = os.environ.get("EASYRL4REC_RUN_STAMP") or datetime.datetime.fromtimestamp(
         time.time()
     ).strftime("%Y_%m_%d-%H_%M_%S")
@@ -172,17 +158,15 @@ def prepare_dir_log(args):   ### 20250914新版prepare_dir_log函数
     logger_dir = os.path.join(MODEL_SAVE_PATH, "logs", run_name)
     os.makedirs(logger_dir, exist_ok=True)
 
-    # 3) 将 logzero 的文件 handler 指向 mean.log（聚合文件）
+
     logger_path = os.path.join(logger_dir, f"logs_rank{args.rank}.log")
     logzero.logfile(logger_path)
 
-    # Codex-modified 2026-08-14: retain useful configuration without writing
-    # a hostname or concrete seed value into logs intended for aggregation.
     public_args = dict(vars(args))
     public_args["seed"] = "<redacted>"
     logger.info(json.dumps(public_args, indent=2))
 
-    # 注意：现在返回“目录”，不是单个 .log 路径
+
     return MODEL_SAVE_PATH, logger_path
 
 
@@ -191,12 +175,10 @@ def prepare_user_model(args):
     np.random.seed(args.seed)
     random.seed(args.seed)
 
-    # Codex-modified 2026-08-14: large licensed artifacts stay outside code.
     UM_SAVE_PATH = os.environ.get(
         "EASYRL4REC_DEEPFM_ROOT",
         os.path.join("saved_models", args.env, args.user_model_name),
     )
-    # MODEL_MAT_PATH = os.path.join(UM_SAVE_PATH, "mats", f"[{args.read_message}]_mat.pickle")
     MODEL_PARAMS_PATH = os.path.join(UM_SAVE_PATH, "params", f"[{args.read_message}]_params.pickle")
 
     with open(MODEL_PARAMS_PATH, "rb") as file:
@@ -272,7 +254,6 @@ def setup_state_tracker(args, ensemble_models, env, train_envs, test_envs_dict, 
 
     saved_embedding = ensemble_models.load_val_user_item_embedding(freeze_emb=args.freeze_emb)
     if args.use_pretrained_embedding:
-        # if args.which_tracker.lower() == "avg":
         user_columns, action_columns, feedback_columns, have_user_embedding, have_action_embedding, have_feedback_embedding = \
             get_dataset_columns(saved_embedding["feat_user"].weight.shape[1],
                                 saved_embedding["feat_item"].weight.shape[1],
@@ -376,14 +357,12 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
         Evaluator_Coverage_Count(test_collector_set, df_item_val, args.need_transform),
         Evaluator_User_Experience(test_collector_set, df_item_val, item_similarity, item_popularity,
                                   args.need_transform, lbe_item=env.lbe_item if args.need_transform else None),
-        # LoggerEval_Policy(args.force_length, metrics)]
         LoggerEval_Policy(
         args.force_length, metrics,
-        rank=args.rank         # 只打印均值；如要顺带打印各 rank 的原始行改 True
+        rank=args.rank
         ),
     ]
     model_save_path = os.path.join(MODEL_SAVE_PATH, "{}_{}.pt".format(args.model_name, args.message))
-    # Codex-added 2026-05-21: shared trainer progress flag for seed-sweep Slurm jobs.
     show_progress = not getattr(args, "quiet_progress", False)
 
     if trainer == "offline":
@@ -399,9 +378,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.step_per_epoch,
             args.test_num,
             args.batch_size,
-            # save_best_fn=save_best_fn,
-            # stop_fn=stop_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -420,9 +396,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -441,9 +414,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             update_per_step=args.update_per_step,
-            # stop_fn=stop_fn,	
-            # save_best_fn=save_best_fn,	
-            # logger=logger1,	
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -463,16 +433,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             update_per_step=args.update_per_step,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,	
-            # save_best_fn=save_best_fn,	
-            # logger=logger1,	
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -492,16 +459,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             update_per_step=args.update_per_step,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,	
-            # save_best_fn=save_best_fn,	
-            # logger=logger1,	
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -520,16 +484,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             update_per_step=args.update_per_step,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,	
-            # save_best_fn=save_best_fn,	
-            # logger=logger1,	
             save_model_fn=functools.partial(save_model_fn,
                                             model_save_path=model_save_path,
                                             state_tracker=state_tracker,
@@ -549,18 +510,14 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # Codex-added 2026-05-21: seed-sweep jobs pass --quiet_progress to reduce Slurm stdout.
             show_progress=show_progress,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -581,18 +538,14 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # Codex-added 2026-05-21: seed-sweep jobs pass --quiet_progress to reduce Slurm stdout.
             show_progress=show_progress,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -614,18 +567,14 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # Codex-added 2026-05-21: seed-sweep jobs pass --quiet_progress to reduce Slurm stdout.
             show_progress=show_progress,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -646,16 +595,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -676,16 +622,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -707,16 +650,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -726,7 +666,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             )
         )
 
-        
         
     elif trainer == 'perfeddc':
         result = perfeddc_trainer(
@@ -739,16 +678,13 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             args.test_num,
             args.batch_size,
             episode_per_collect=args.episode_per_collect,
-            # 🔥 federated params (改成关键字参数)
+
             comm=comm,
             rank=args.rank,
             world_size=args.world_size,
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # stop_fn=stop_fn,
-            # save_best_fn=save_best_fn,
-            # logger=logger1,
             save_model_fn=functools.partial(
                 save_model_fn,
                 model_save_path=model_save_path,
@@ -758,7 +694,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             )
         )
 
-    # Codex-added 2026-05-19: pFedMe branch for MovieLens/EasyRL4Rec experiments.
     elif trainer == 'pfedme':
         result = pfedme_trainer(
             policy,
@@ -776,8 +711,6 @@ def learn_policy(args, env, dataset, policy, train_collector, test_collector_set
             comm_times_per_epoch=args.comm_times_per_epoch,
             rota=args.rota,
             verbose_sync=args.verbose_sync,
-            # Codex-added 2026-05-21: disable tqdm for pFedMe Slurm reruns to
-            # avoid very large stdout files and reduce scheduler filesystem I/O.
             show_progress=False,
             save_model_fn=functools.partial(
                 save_model_fn,

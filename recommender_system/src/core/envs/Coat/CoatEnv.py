@@ -6,7 +6,6 @@ sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.BaseEnv import BaseEnv
 from src.core.envs.Coat.CoatData import CoatData
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/Coat"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 PRODATAPATH = os.path.join(ROOTPATH, "data_processed")
@@ -41,32 +40,9 @@ class CoatEnv(BaseEnv):
 
         dist_list = np.array([self.mat_distance[action, x] for x in window_actions])
 
-        # # for debug:
-        # np.percentile(self.mat_distance, [0,10,25,50,75,90,100])
-        # res = [ 0.        ,  7.48331477,  8.83176087, 10.67707825, 13.11487705,
-        #        16.1245155 , 30.88689042]
-        # np.percentile(self.mat_distance, 0.33)
-        # np.percentile(self.mat_distance, 0.34)
-        # np.percentile(self.mat_distance, 50)
-        #
-        # from matplotlib import pyplot as plt
-        # plt.hist(self.mat_distance.reshape(-1), bins=100, alpha=0.5, color='blue', edgecolor='black')
-        # plt.show()
 
         if any(dist_list < self.leave_threshold):
             return True
 
-        # hist_categories_each = list(map(lambda x: self.list_feat_small[x], window_actions))
-        # hist_set = set.union(*list(map(lambda x: self.list_feat[x], self.sequence_action[t - self.num_leave_compute:t-1])))
-        # hist_categories = list(itertools.chain(*hist_categories_each))
-        # hist_dict = Counter(hist_categories)
-        # category_a = self.list_feat_small[action]
-
-        # for c in category_a:
-        #     if hist_dict[c] > self.leave_threshold:
-        #         return True
-
-        # if action in window_actions:
-        #     return True
 
         return False

@@ -367,7 +367,6 @@ class ReplayBuffer:
                 else self._indices[:len(self)][index]
         else:
             indices = index  # type: ignore
-        # raise KeyError first instead of AttributeError,
         # to support np.array([ReplayBuffer()])
         obs = self.get(indices, "obs")
         if self._save_obs_next:

@@ -8,7 +8,6 @@ sys.path.extend(["./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 
 from src.core.envs.KuaiRand_Pure.KuaiRandData import KuaiRandData
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/KuaiRand_Pure"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 
@@ -50,10 +49,6 @@ class KuaiRandEnv(BaseEnv):
             if hist_dict[c] > self.leave_threshold:
                 return True
 
-        # window_actions = self.sequence_action[t - self.num_leave_compute:t]
-        # dist_list = np.array([self.mat_distance[action, x] for x in window_actions])
-        # if any(dist_list < self.leave_threshold):
-        #     return True
 
         return False
 

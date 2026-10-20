@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: thin public dispatcher around preserved runners.
-# Codex-modified 2026-08-18: audit the canonical BridgePPO imports.
 from __future__ import annotations
 
 import argparse
@@ -119,8 +117,6 @@ def validate_assets(asset_root: Path, scene: str | None = None) -> None:
 def audit_imports() -> None:
     code = """
 import sys
-# Codex-modified 2026-08-14: expose the two vendored packages exactly as the
-# preserved runners do before importing their public PPO modules.
 sys.path.insert(0, 'src/tianshou')
 sys.path.insert(0, 'src/DeepCTR-Torch')
 sys.path.insert(0, 'examples/policy')
@@ -248,11 +244,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             "MKL_NUM_THREADS": "1",
             "NUMEXPR_NUM_THREADS": "1",
             "PYTHONUNBUFFERED": "1",
-            # Codex-modified 2026-08-14: preserved helpers inspect CUDA
-            # independently of --cpu, so hide devices on the public CPU path.
             "CUDA_VISIBLE_DEVICES": "",
-            # Codex-modified 2026-08-14: one parent-generated stamp keeps all
-            # MPI rank logs in the same directory even when startup crosses a second.
             "EASYRL4REC_RUN_STAMP": datetime.datetime.now(
                 datetime.timezone.utc
             ).strftime("%Y_%m_%d-%H_%M_%S-%f"),

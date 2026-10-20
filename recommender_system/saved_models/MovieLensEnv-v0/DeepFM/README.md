@@ -1,4 +1,3 @@
-<!-- Codex-added 2026-08-14: retain the expected model path while keeping large assets external. -->
 # DeepFM asset placeholder
 
 The three `hetero5` pretrained DeepFM ensembles, matrices and embeddings are provided in the private repository's asset release, not in this Git directory. The `homo3` models are not part of this bundle.

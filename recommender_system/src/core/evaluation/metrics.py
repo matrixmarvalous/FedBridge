@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import numpy as np
 import pandas as pd
 
@@ -32,9 +31,8 @@ def get_MRR(rec_list, true_list, true_rel):
     rr = 0.
     for i in range(len(rec_list)):
         for j in range(len(rec_list[i])):
-            # if true_list[i][0] == rec_list[i][j]:
             if rec_list[i][j] in true_list[i]:
-                rr += 1/(j+1)  # 注意j的取值从0开始
+                rr += 1/(j+1)
                 break
     mrr = rr / len(true_list)
     return mrr
@@ -92,7 +90,6 @@ def get_Precision(rec_list, true_list, true_rel):
         recommend_sum += len_rec
 
     return np.mean(res)
-    # return n_union / recommend_sum
 
 
 def get_Recall(rec_list, true_list, true_rel):
@@ -110,7 +107,6 @@ def get_Recall(rec_list, true_list, true_rel):
         user_sum += len_truth
 
     return np.mean(recalls)
-    # return n_union / user_sum
 
 def get_NDCG(rec_list, true_list, true_rel):
     ndcgs = 0
@@ -125,14 +121,12 @@ def get_NDCG(rec_list, true_list, true_rel):
                 dcg += (1 << mapscore[item] - 1) / np.log2(2 + k)
         if len(hits):
             hits = np.sort(np.asarray(hits))[::-1]
-            # idcg = ((1 << hits - 1) / np.log2(2 + np.arange(len(hits)))).sum()
             idcg = ((1 << np.array(true_rel[i]) - 1)[:K] / np.log2(2 + np.arange(min(K, len(true_rel[i]))))).sum()
             # true_rel[i]
 
             ndcgs += dcg / idcg
 
     return ndcgs / len(rec_list)
-
 
 
 METRICS = {"recall":get_Recall,
@@ -149,7 +143,6 @@ def get_ranking_results(xy_predict, df_true_list, K=(20,10,5), metrics=["Recall"
     assert all([metric.lower() in METRICS.keys() for metric in metrics])
 
     K = sorted(K)[::-1]
-    # df_score["y_pred"] = df_score["y_pred"].map(lambda x: np.argsort(x)[::-1])
     df_score["ind"] = df_score.apply(lambda x: np.argsort(x["y_pred"])[::-1], axis=1)
     df_score["item_id_sorted"] = df_score.apply(lambda x: np.array(x["item_id"])[x["ind"]], axis=1)
     df_score["y_pred_sorted"] = df_score.apply(lambda x: np.array(x["y_pred"])[x["ind"]], axis=1)
@@ -165,7 +158,6 @@ def get_ranking_results(xy_predict, df_true_list, K=(20,10,5), metrics=["Recall"
     true_rel = df_eval["y"].to_list()
 
 
-
     results = {}
     for metric in metrics:
         for k in K:
@@ -177,14 +169,8 @@ def get_ranking_results(xy_predict, df_true_list, K=(20,10,5), metrics=["Recall"
     return results
 
 
-
-
 if __name__ == '__main__':
 
-    # # For the coat data!
-    # df_eval["item_id_sorted"] = df_eval["item_id_sorted"].map(lambda x: x.tolist())
-    # df_eval["y_pred_sorted"] = df_eval["y_pred_sorted"].map(lambda x: x.tolist())
-    # df_eval.to_excel("df_eval_coat.xlsx")
 
     metrics = ["Recall", "Precision", "NDCG", "HT", "MAP", "MRR"]
     df_eval = pd.read_excel("df_eval_coat.xlsx",index_col="user_id")
@@ -219,21 +205,3 @@ if __name__ == '__main__':
     print(ad_results)
 
 
-
-
-
-
-
-
-
-# if __name__ == '__main__':
-#     # 推荐列表
-#     R = [[3, 10, 15, 12, 17], [20, 15, 18, 14, 30], [2, 5, 7, 8, 15], [56, 14, 25, 12, 19], [21, 24, 36, 54, 45]]
-#     # 用户访问列表
-#     T = [[12], [3], [5], [14], [20]]
-#     # T = [[12, 3, 17, 15], [3], [5, 15, 8], [14], [20, 24]]
-#     print(MRR(R, T))
-#     print(HitRatio(R, T))
-#     print(MAP(R, T))
-#     print(Precision(R, T))
-#     print(Recall(R, T))

@@ -16,17 +16,13 @@ class LoggerEval_UserModel():
         pass
 
     def on_epoch_end(self, epoch, logs=None):
-        # 1. write logger
         logger.info("Epoch: [{}], Info: [{}]".format(epoch, logs))
-
-        # 2. upload logger
-        # self.upload_logger()
 
 
 class LoggerEval_Policy():
     def __init__(self, force_length, metrics, rank):
         self.force_length = force_length
-        self.metrics = metrics  # 需和evaluator函数对应
+        self.metrics = metrics
         self.rank = rank
     
     def on_epoch_begin(self, epoch, **kwargs):
@@ -44,7 +40,6 @@ class LoggerEval_Policy():
             res_domination = {}
             for k,v in results.items():
                 res_search = re.match(pattern, k)
-                # print(k, res_search)
                 if res_search:
                     res_domination[k] = v
             return res_domination
@@ -81,8 +76,5 @@ class LoggerEval_Policy():
                 res_domination = find_item_domination_results(prefix)
                 results_all.update(res_domination)
 
-        # 1. write logger
         logger.info("Epoch: [{}], Rank: [{}], Info: [{}]".format(epoch, self.rank, results_all))
 
-        # 2. upload logger
-        # self.upload_logger()

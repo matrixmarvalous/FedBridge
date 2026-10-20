@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     chen_kkkk, bgasdo36977@gmail.com

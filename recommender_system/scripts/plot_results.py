@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14
 """Plot EasyRL4Rec learning curves from newly aggregated run data."""
 
 from __future__ import annotations
@@ -20,8 +19,6 @@ import pandas as pd
 PACKAGE_ROOT = Path(__file__).resolve().parents[1]
 SCENES = ("hetero5", "homo3")
 METHODS = ("fedbridge", "individual", "push_avg", "pfedme", "perfeddc", "fedavg")
-# Codex-modified 2026-09-10: plots consume generated aggregates only; no
-# historical result tables are bundled with the public code repository.
 METRICS = ("R_cum", "Len", "Coverage")
 
 METHOD_LABELS = {

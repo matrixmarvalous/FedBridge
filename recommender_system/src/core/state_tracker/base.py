@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/26 9:49 上午
-# @Author  : Chongming GAO
-# @FileName: state_tracker.py
+
 
 import numpy as np
 import torch
@@ -66,7 +63,6 @@ class StateTracker_Base(nn.Module):
 
         self.dim_model = dim_model
         self.window_size = window_size
-        # self.random_init = random_init
         self.device = device
 
         self.test_min = test_min
@@ -99,10 +95,7 @@ class StateTracker_Base(nn.Module):
 
             self.embedding_dict = saved_embedding.to(device)
 
-            # self.num_item = self.embedding_dict.feat_item.weight.shape[0]
-            # self.dim_item = self.embedding_dict.feat_item.weight.shape[1]
 
-            # Add a new embedding vector for a non-exist item.
             new_embedding = FLOAT(1, self.dim_model).to(device)
             nn.init.normal_(new_embedding, mean=0, std=0.01)
             emb_cat = torch.cat([self.embedding_dict.feat_item.weight.data, new_embedding])
@@ -113,7 +106,6 @@ class StateTracker_Base(nn.Module):
         if self.use_userEmbedding:
             pass
             # Todo
-            # self.ffn_user = nn.Linear(compute_input_dim(self.user_columns), self.dim_model, device=self.device)
 
     def set_need_normalization(self, need_state_norm):
         self.need_state_norm = need_state_norm
@@ -149,10 +141,7 @@ class StateTracker_Base(nn.Module):
 
         if r_max is not None and r_min is not None:
             normed_r = (e_r - r_min) / (r_max - r_min)
-            # if not (all(normed_r<=1) and all(normed_r>=0)):
-            #     a = 1
             normed_r[normed_r > 1] = 1  # todo: corresponding to the initialize reward line above.
-            # assert (all(normed_r<=1) and all(normed_r>=0))
         else:
             normed_r = e_r
 
@@ -161,11 +150,9 @@ class StateTracker_Base(nn.Module):
 
     def convert_to_k_state_embedding(self, buffer=None, indices=None, is_obs=None, batch=None,
                                      use_batch_in_statetracker=False, is_train=True):
-        # Planning: indices = last_indices
-        # Learning: indices = current_indices
         if use_batch_in_statetracker:  # when collector collects the data, batch is not None.
             assert batch is not None
-            user_item_pair_all = batch.obs  # 需要多收集一步
+            user_item_pair_all = batch.obs
             rew_all = batch.rew_prev
             live_mat = np.ones([1, len(user_item_pair_all)], dtype=bool)
             assert is_obs == True
@@ -187,8 +174,6 @@ class StateTracker_Base(nn.Module):
                     user_item_pair = buffer[index].obs_next
                     rew = buffer[index].rew
 
-                # users = np.expand_dims(user_item_pair[:, 0], -1)
-                # items = np.expand_dims(user_item_pair[:, 1], -1)
 
                 live_mat = np.vstack([live_mat, live_ids])
                 user_item_pair_all = np.concatenate([user_item_pair_all, user_item_pair])
@@ -223,7 +208,6 @@ class StateTracker_Base(nn.Module):
         else:
             state_flat = s_t
 
-        # state_flat = s_t
         state_cube = state_flat.reshape((-1, live_mat.shape[1], state_flat.shape[-1]))
 
         mask = torch.from_numpy(np.expand_dims(live_mat, -1)).to(self.device)
@@ -242,7 +226,6 @@ class StateTracker_Base(nn.Module):
         else:
             seq_normed = seq
 
-        # assert seq.shape[1] == mask.shape[1]
         if seq_normed.shape[1] < self.window_size:
             seq_normed = torch.cat([seq_normed, torch.zeros(
                 [seq_normed.shape[0], self.window_size - seq_normed.shape[1], seq_normed.shape[2]],

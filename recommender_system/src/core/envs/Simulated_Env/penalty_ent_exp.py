@@ -6,9 +6,6 @@ from torch import FloatTensor
 from src.core.util.utils import compute_action_distance, clip0, compute_exposure
 
 
-# from virtualTB.model.UserModel import UserModel
-# from src.core.envs.VirtualTaobao.virtualTB.utils import *
-
 class PenaltyEntExpSimulatedEnv(BaseSimulatedEnv):
     def __init__(self, ensemble_models,
                  env_task_class, task_env_param: dict, task_name: str,
@@ -48,12 +45,7 @@ class PenaltyEntExpSimulatedEnv(BaseSimulatedEnv):
         self._reset_history_exposure()
 
     def _compute_pred_reward(self, action):
-        # 1. get prediction
         pred_reward = self.predicted_mat[self.cur_user, action]  # todo
-        # 2. get entropy
-        # entropy_u = 0
-        # if 0 in self.entropy_window:
-        #     entropy_u = self.entropy_dict["on_user"].loc[self.cur_user]
         entropy = 0
         entropy_set = set(self.entropy_window) - {0}
         if len(entropy_set):
@@ -62,15 +54,12 @@ class PenaltyEntExpSimulatedEnv(BaseSimulatedEnv):
                 action_trans = self.env_task.lbe_item.inverse_transform(action_k)
             else:
                 action_trans = action_k
-            # action_reverse = action_trans[::-1]
-            # max_win = max(self.entropy_window)
             for k in entropy_set:
                 if len(action_trans) < k:
-                    entropy += 1 # todo! 补足差额
+                    entropy += 1
                     continue
 
                 action_set = tuple(sorted(action_trans[-k:])) if self.is_sorted else tuple(action_trans[-k:])
-                # print(action_set)
                 if self.feature_level:
                     feat_set = get_features_of_last_n_items_features(k, action_set, self.map_item_feat, is_sort=self.is_sorted)
                     if len(feat_set) == 0:
@@ -81,20 +70,17 @@ class PenaltyEntExpSimulatedEnv(BaseSimulatedEnv):
                         if feat in self.entropy_dict["map"]:
                             ans_feat += self.entropy_dict["map"][feat]
                         else:
-                            ans_feat += 1 # todo! 补足差额
+                            ans_feat += 1
                     entropy += ans_feat / len(feat_set)
                 else:
                     if action_set in self.entropy_dict["map"]:
                         entropy += self.entropy_dict["map"][action_set]
                     else:
-                        entropy += 1  # todo! 补足差额
+                        entropy += 1
 
-            # if len(action_trans) < self.step_n_actions:
-            #     entropy += self.step_n_actions - len(action_trans)  # todo 补足差额
 
         penalized_reward = pred_reward + self.lambda_entropy * entropy - self.MIN_R
 
-        ##############################
 
         # Compute intervened exposure effect e^*_t(u, i)
         t = int(self.total_turn)

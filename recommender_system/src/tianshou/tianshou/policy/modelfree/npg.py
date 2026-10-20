@@ -150,7 +150,6 @@ class NPGPolicy(A2CPolicy):
     ) -> torch.Tensor:
         x = torch.zeros_like(minibatch)
         r, p = minibatch.clone(), minibatch.clone()
-        # Note: should be 'r, p = minibatch - MVP(x)', but for x=0, MVP(x)=0.
         # Change if doing warm start.
         rdotr = r.dot(r)
         for _ in range(nsteps):

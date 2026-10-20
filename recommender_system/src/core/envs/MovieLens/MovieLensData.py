@@ -9,20 +9,6 @@ sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.MovieLens import provide_MF_results
 from src.core.envs.BaseData import BaseData, get_distance_mat
 
-# ROOTPATH = os.path.dirname(__file__)
-# ROOTPATH = "data/MovieLens"
-# DATAPATH = os.path.join(ROOTPATH, "data_raw")
-# PRODATAPATH = os.path.join(ROOTPATH, "data_processed")
-
-# for path in [PRODATAPATH]:
-#     if not os.path.exists(path):
-#         os.mkdir(path)
-
-# # 在文件顶部加上默认常量（用于兜底）
-# DEFAULT_ROOTPATH = "data/MovieLens"
-# DEFAULT_DATAPATH = os.path.join(DEFAULT_ROOTPATH, "data_raw")
-# DEFAULT_PRODATAPATH = os.path.join(DEFAULT_ROOTPATH, "data_processed")
-
 
 class MovieLensData(BaseData):
     def __init__(self, datapath: str = None, prodatapath: str = None):
@@ -44,13 +30,10 @@ class MovieLensData(BaseData):
     def get_df(self, name="movielens-1m-train.csv"):
         # read interaction
         filename = os.path.join(self.datapath, name)
-        # df_data = pd.read_csv(filename, sep="\s+", header=None, names=["user_id", "item_id", "rating"])
         df_data = pd.read_csv(filename, header=0, names=["user_id", "item_id", "rating", "timestamp"])
 
         df_data = df_data.sort_values(["user_id", "timestamp"])
 
-        # df_data["user_id"] -= 1
-        # df_data["item_id"] -= 1
         df_user = MovieLensData.load_user_feat(self.datapath)
         list_feat, df_item = MovieLensData.load_category(self.datapath)
 
@@ -103,7 +86,7 @@ class MovieLensData(BaseData):
 
             item_pop_df = pd.DataFrame(np.arange(n_items), columns=["item_id"])
             item_pop_df = item_pop_df.merge(df_pop, how="left", on="item_id")
-            item_pop_df['popularity'] = item_pop_df['popularity'].fillna(0)  ##新修改
+            item_pop_df['popularity'] = item_pop_df['popularity'].fillna(0)
             # item_pop_df['popularity'].fillna(0, inplace=True)
             item_popularity = item_pop_df['popularity']
             item_popularity_add1 = np.nan * np.ones([item_popularity.shape[0] + 1])   # This is very important since the item_id of Movielens starts from 1. And popularity use the raw ids as index.
@@ -138,7 +121,6 @@ class MovieLensData(BaseData):
 
         list_feat = df_item_all['genre'].to_list()
 
-        # df_item["year_range"] = pd.cut(df_item["release_year"], bins=[1900, 1950, 2000, 2050], labels=False)
 
         df_feat = pd.DataFrame(list_feat, columns=['feat0', 'feat1', 'feat2', 'feat3', 'feat4', 'feat5'],
                                index=df_item_all.index)
@@ -163,9 +145,6 @@ class MovieLensData(BaseData):
 
     @staticmethod
     def load_user_feat(datapath: str = None):
-        # df_user = pd.DataFrame(np.arange(6040), columns=["user_id"])
-        # df_user = pd.read_csv(os.path.join(DATAPATH, "users.dat"), sep="::", engine="python", header=None, names=["user_id", "gender",
-        #   def load_user_feat():
         print("load user features")
         filepath = os.path.join(datapath, "users.dat")
         df_user = pd.read_csv(filepath, sep="::", header=None,
@@ -188,33 +167,15 @@ class MovieLensData(BaseData):
 
         return df_user
 
-    # def load_item_feat(self):
-    #     df_item = pd.DataFrame(np.arange(3952), columns=["item_id"])
-    #     df_item.set_index("item_id", inplace=True)
-    #     return df_item
 
-    # @staticmethod
-    # def load_mat():
-    #     filename_GT = os.path.join(DATAPATH, "rating_matrix.csv")
-    #     if os.path.exists(filename_GT):
-    #         mat = pd.read_csv(filename_GT, header=None).to_numpy()
-    #     else:
-    #         mat = provide_MF_results.main()
-
-    #     mat[mat < 0] = 0
-    #     mat[mat > 5] = 5
-    #     return mat
     @staticmethod
     def load_mat(datapath: str = None):
         filename_GT = os.path.join(datapath, "rating_matrix.csv")
         if os.path.exists(filename_GT):
             mat = pd.read_csv(filename_GT, header=None).to_numpy()
         else:
-            # raise FileNotFoundError(
-            #     f"在 {filename_GT} 没有找到 rating_matrix.csv 文件，请先生成该文件，"
-            #     "否则需要 provide_MF_results 脚本来创建。"
-            # )
-            # # 如果你以后拿到 provide_MF_results，可以改成：
+
+
             mat = provide_MF_results.main(datapath)
     
         mat[mat < 0] = 0

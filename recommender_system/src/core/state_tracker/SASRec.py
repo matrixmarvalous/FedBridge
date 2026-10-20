@@ -120,13 +120,11 @@ class StateTracker_SASRec(StateTracker_Base):
                          window_size=window_size, use_userEmbedding=use_userEmbedding)
 
         
-        
         self.dropout_rate = dropout_rate
 
         self.final_dim = self.hidden_size
 
         
-
         self.positional_embeddings = nn.Embedding(
             num_embeddings=window_size,
             embedding_dim=self.hidden_size
@@ -150,14 +148,12 @@ class StateTracker_SASRec(StateTracker_Base):
         seq = self.emb_dropout(inputs_pos_emb)
 
         seq *= mask
-        # assert (seq == seq * mask).all()
         seq_normalized = self.ln_1(seq)
         mh_attn_out = self.mh_attn(seq_normalized, seq)
         ff_out = self.feed_forward(self.ln_2(mh_attn_out))
         ff_out_masked = ff_out * mask
         ff_out_3 = self.ln_3(ff_out_masked)
 
-        # state_final = ff_out_3[:, 0, :]
         state_final = extract_axis_1(ff_out_3, len_states - 1).squeeze(1)
 
         return state_final

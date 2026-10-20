@@ -85,10 +85,8 @@ class DQNPolicy(BasePolicy):
         self.model_old.load_state_dict(self.model.state_dict())
 
     def _target_q(self, batch, buffer: ReplayBuffer, indices: np.ndarray) -> torch.Tensor:
-        # batch = buffer[indices]  # batch.obs_next: s_{t+n}
         result = self(batch, buffer, indices, input="obs_next")
         if self._target:
-            # target_Q = Q_old(s_, argmax(Q_new(s_, *)))
             target_q = self(batch, buffer, indices, model="model_old", input="obs_next").logits
         else:
             target_q = result.logits
@@ -161,8 +159,6 @@ class DQNPolicy(BasePolicy):
             more detailed explanation.
         """
         model = getattr(self, model)
-        # obs = batch[input]
-        # obs_next = obs.obs if hasattr(obs, "obs") else obs
         is_obs = True if input == "obs" else False
         obs_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=is_obs, batch=batch,  is_train=is_train, use_batch_in_statetracker=use_batch_in_statetracker)
         logits, hidden = model(obs_emb, state=state, info=batch.info)

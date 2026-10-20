@@ -10,19 +10,10 @@ import numpy as np
 
 # Load the Movielens ratings data
 CODEPATH = os.path.dirname(__file__)
-# DATAPATH = os.path.join(CODEPATH, "data_raw")
-# DATAPATH = os.path.join(CODEPATH, 'ml1m_subsets_by_age')
 device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 def load_data(DATAPATH):
-    # ratings_df = pd.read_csv(os.path.join(DATAPATH, "ratings.dat"), delimiter='::', header=None, names=['UserID', 'MovieID', 'Rating', 'Timestamp'], engine='python')
 
-    # # Split the data into training and test sets (10% for test)
-    # train_df, test_df = train_test_split(ratings_df, test_size=0.1, random_state=42)
-    # print(train_df)
-    # print(test_df)
-    # train_df.to_csv(os.path.join(DATAPATH, "movielens-1m-train.csv"), index=False) # needs to change train and test
-    # test_df.to_csv(os.path.join(DATAPATH, "movielens-1m-test.csv"), index=False) # needs to change train and test
     ratings_df = pd.read_csv(os.path.join(DATAPATH, "ratings.dat"), 
                              delimiter="::", header=None,
                              names=["UserID","MovieID","Rating","Timestamp"],
@@ -55,8 +46,6 @@ class MatrixFactorization(nn.Module):
     
     def forward(self, user, movie):
         return (self.user_factors(user) * self.movie_factors(movie)).sum(1)
-
-
 
 
 # Training and Evaluation Function
@@ -113,7 +102,6 @@ def main(datapath, device=device):
     model = MatrixFactorization(num_users, num_movies, num_factors).to(device)
     criterion = nn.MSELoss()
     optimizer = optim.SGD(model.parameters(), lr=0.1, momentum=0.9)
-    # optimizer = optim.Adam(model.parameters(), lr=0.01)
 
     # Running the Training and Evaluation
     train_and_evaluate(model, train_loader, test_loader, criterion, optimizer, epochs=80)
@@ -142,8 +130,6 @@ def main(datapath, device=device):
     np.savetxt(rating_matrix_save_path, rating_matrix, delimiter=',')
     return rating_matrix
     
-# if __name__ == "__main__":
-#     main(datapath)
 if __name__ == "__main__":
     import argparse
     ap = argparse.ArgumentParser()

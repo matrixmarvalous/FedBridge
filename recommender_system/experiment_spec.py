@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: one public source of truth for EasyRL4Rec runs.
-# Codex-modified 2026-08-18: point final algorithm entries to BridgePPO runners.
 from __future__ import annotations
 
 from pathlib import Path
@@ -60,10 +58,6 @@ COMMON_ARGS: Tuple[str, ...] = (
 METHOD_ARGS: Mapping[Tuple[str, str], Tuple[str, ...]] = {
     ("hetero5", "fedbridge"): ("--lambda_kl", "0.005", "--comm_times_per_epoch", "5"),
     ("homo3", "fedbridge"): ("--lambda_kl", "0.001", "--comm_times_per_epoch", "10"),
-    # Codex-modified 2026-09-09: Individual historically reused the bridge
-    # runner with zero KL. BridgePPO now short-circuits its inactive KL/update
-    # path at exactly zero, making the personal update standard PPO while the
-    # preserved trainer still performs the historical bridge synchronization.
     ("hetero5", "individual"): ("--lambda_kl", "0", "--comm_times_per_epoch", "25"),
     ("homo3", "individual"): ("--lambda_kl", "0", "--comm_times_per_epoch", "25"),
     ("hetero5", "push_avg"): ("--comm_times_per_epoch", "10"),

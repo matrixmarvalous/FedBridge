@@ -1,14 +1,4 @@
 #!/bin/bash
-# Codex-added 2026-08-14: 8-rank, 16-core Siyuan-1 release template.
-# Codex-modified 2026-08-19: activate the environment created by environment.yml.
-#SBATCH --job-name=fb-easyrl4rec
-#SBATCH --partition=64c512g
-#SBATCH --nodes=1
-#SBATCH --ntasks=8
-#SBATCH --cpus-per-task=2
-#SBATCH --time=24:00:00
-#SBATCH --output=.codex_hpc/jobs/%x-%j.out
-#SBATCH --error=.codex_hpc/jobs/%x-%j.err
 
 set -euo pipefail
 
@@ -37,8 +27,6 @@ python -V
 asset_root="${ASSET_ROOT:-${SLURM_SUBMIT_DIR}}"
 output_root="${OUTPUT_ROOT:-${SLURM_SUBMIT_DIR}/results}"
 
-# Codex-modified 2026-08-14: use this template for either a scientific run or
-# a non-scientific one-epoch structural check.
 extra_args=()
 if [[ "${SMOKE_TEST:-0}" == "1" ]]; then
     extra_args+=(--smoke-test)

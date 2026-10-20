@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-23: generate private, fixed-tuple Siyuan-1 jobs without
-# embedding experiment seeds in the public release.
-# Codex-modified 2026-08-25: add optional per-condition parallel jobs; the
-# previous generator is backed up under .codex_hpc/backups/fedbridge_release/
-# 20260825_153941/scripts/prepare_siyuan_jobs.py.
 """Prepare independent Slurm jobs for the FedBridge release on Siyuan-1.
 
 Every generated ``.sbatch`` file fixes exactly one method and one user-supplied
@@ -169,8 +164,6 @@ def parse_args(argv=None):
         ),
     )
     parser.add_argument("--partition", default="64c512g")
-    # Codex-modified 2026-09-10: public defaults match the environment files
-    # and final FedBridge naming; cluster-specific names remain overridable.
     parser.add_argument("--mujoco-conda-env", default="fedbridge-mujoco")
     parser.add_argument("--recommender-conda-env", default="fedbridge-easyrl4rec")
     parser.add_argument("--conda-module", default="miniconda3/4.10.3")
@@ -292,7 +285,6 @@ def job_name(component, method, run_label, condition=None):
 def common_header(name, wall_time, stdout_path, stderr_path):
     return [
         "#!/usr/bin/env bash",
-        "# Codex-added 2026-08-23: private fixed-tuple Siyuan-1 experiment job.",
         "# PRIVATE: this generated file contains a user-selected seed; do not publish it.",
         "# One file = one algorithm x one random seed x one condition group.",
         "#SBATCH --job-name={}".format(name),
@@ -338,9 +330,6 @@ def marker_lines(marker_dir, identifier):
     marker_base = marker_dir / identifier
     return [
         "job_marker={}".format(shell_quote(str(marker_base))),
-        # Codex-modified 2026-08-23: the former EXIT trap could report zero
-        # when Slurm killed the batch shell at its time limit.  A completion
-        # marker is now written atomically only after every application command.
         "record_success() {",
         "  marker=\"${job_marker}.${SLURM_JOB_ID:-unknown}.status\"",
         "  marker_tmp=\"${marker}.tmp.$$\"",
@@ -556,7 +545,6 @@ def recommender_script(
 
 def submission_script(job_root):
     return """#!/usr/bin/env bash
-# Codex-added 2026-08-23: submit independent fixed-tuple jobs (never an array).
 set -euo pipefail
 umask 077
 
@@ -599,7 +587,6 @@ echo "Ledger: ${{ledger}}"
 
 def status_script(job_root):
     return """#!/usr/bin/env bash
-# Codex-added 2026-08-23: inspect scheduler state for generated fixed-tuple jobs.
 set -euo pipefail
 
 job_root={job_root}
@@ -750,8 +737,6 @@ def main(argv=None):
         "seed_is_stored_only_in_generated_sbatch_files": True,
         "seed_sha256": seed_fingerprint,
         "profile": args.profile,
-        # Codex-added 2026-08-25: record whether condition cells were emitted
-        # as independently schedulable jobs for maximum cluster parallelism.
         "parallel_conditions": args.parallel_conditions,
         "job_granularity": (
             "method_condition_seed" if args.parallel_conditions else "method_seed"

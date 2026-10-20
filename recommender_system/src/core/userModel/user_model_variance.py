@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/26 9:50 上午
-# @Author  : Chongming GAO
-# @FileName: user_model.py
+
 import pickle
 import time
 
@@ -17,11 +14,6 @@ from tqdm import tqdm
 from src.core.util.inputs import SparseFeatP, create_embedding_matrix
 from src.core.util.layers import Linear
 
-
-# try:
-#     from tensorflow.python.keras.callbacks import CallbackList
-# except ImportError:
-#     from tensorflow.python.keras._impl.keras.callbacks import CallbackList
 
 from deepctr_torch.inputs import build_input_features, DenseFeat, VarLenSparseFeat
 from deepctr_torch.callbacks import History
@@ -89,15 +81,8 @@ class UserModel_Variance(nn.Module):
 
         print(batch_size)
         model = self.train()
-        # loss_func_dict = self.loss_func_dict
         optim = self.optim
 
-        # if self.gpus:
-        #     print('parallel running on these gpus:', self.gpus)
-        #     model = torch.nn.DataParallel(model, device_ids=self.gpus)
-        #     batch_size *= len(self.gpus)  # input `batch_size` is batch_size per gpu
-        # else:
-        #     print(self.device)
         print("Training device is [{}]".format(self.device))
 
         train_loader = DataLoader(
@@ -120,7 +105,6 @@ class UserModel_Variance(nn.Module):
         if self.RL_eval_fun:
             eval_result_RL = self.RL_eval_fun(self.eval())
             epoch_logs.update(eval_result_RL)
-        # callbacks.on_epoch_end(-1, epoch_logs)
         for callback in callbacks:
             callback.on_epoch_end(-1, epoch_logs)
 
@@ -129,7 +113,6 @@ class UserModel_Variance(nn.Module):
             len(dataset_train), 0 if dataset_val is None else len(dataset_val), steps_per_epoch))
         for epoch in range(initial_epoch, epochs):
             print("Training the {}/{} epoch".format(epoch, epochs))
-            # callbacks.on_epoch_begin(epoch)
             for callback in callbacks:
                 callback.on_epoch_begin(epoch)
             epoch_logs = {}
@@ -139,7 +122,6 @@ class UserModel_Variance(nn.Module):
             train_result = {}
             try:
                 with tqdm(enumerate(train_loader), total=steps_per_epoch) as t:
-                    # for _, (x_user, x_item, neg_items, y_train) in t:
                     for i, (x, y, score) in t:
                         x = x.to(self.device).float()
                         y = y.to(self.device).float()
@@ -148,7 +130,6 @@ class UserModel_Variance(nn.Module):
                         loss = model.get_loss(x, y, score, deterministic=False).squeeze()
 
                         optim.zero_grad()
-                        # loss = loss_func(y_pred, y.squeeze(), reduction='sum')
 
                         reg_loss = self.get_regularization_loss()
 
@@ -162,7 +143,6 @@ class UserModel_Variance(nn.Module):
                         optim.step()
 
                         if bool(torch.isnan(total_loss)):
-                            # print(i, x, y, score, loss, reg_loss, self.aux_loss)
                             model_parameters = {
                                 "i": i,
                                 "x": x,
@@ -186,18 +166,14 @@ class UserModel_Variance(nn.Module):
             # Add epoch_logs
             epoch_logs["loss"] = total_loss_epoch / sample_num
 
-            # for name, result in train_result.items():
-            #     epoch_logs[name] = np.sum(result) / steps_per_epoch
 
             if dataset_val:
                 eval_result = self.evaluate_data(dataset_val, batch_size, epoch=epoch)
                 for name, result in eval_result.items():
-                    # epoch_logs["val_" + name] = result
                     epoch_logs[name] = result
             if self.RL_eval_fun:
                 eval_result_RL = self.RL_eval_fun(self.eval())
                 for name, result in eval_result_RL.items():
-                    # epoch_logs["RL_val_" + name] = result
                     epoch_logs[name] = result
 
             # verbose
@@ -208,25 +184,16 @@ class UserModel_Variance(nn.Module):
                 eval_str = "{0}s - loss: {1: .4f}".format(
                     epoch_time, epoch_logs["loss"])
 
-                # for name in self.metrics:
-                #     eval_str += " - " + name + \
-                #                 ": {0: .4f}".format(epoch_logs[name])
 
                 if dataset_val:
                     for name in self.metric_fun:
-                        # eval_str += " - " + "val_" + name + \
-                        #             ": {0: .4f}".format(epoch_logs["val_" + name])
                         eval_str += " - " + "val_" + name + \
                                     ": {0: .4f}".format(epoch_logs[name])
 
                 print(eval_str)
-            # callbacks.on_epoch_end(epoch, epoch_logs)
             for callback in callbacks:
                 callback.on_epoch_end(epoch, epoch_logs)
-            # if self.stop_training:
-            #     break
 
-        # callbacks.on_train_end()
         for callback in callbacks:
             callback.on_train_end()
 
@@ -244,8 +211,6 @@ class UserModel_Variance(nn.Module):
         item_index = df_item_val.index.to_numpy()
 
         
-
-
         # the preserved transformed ids.
         indices = np.ones(len(item_index), dtype=bool)
         indices[recommended_ids] = False
@@ -265,7 +230,6 @@ class UserModel_Variance(nn.Module):
         assert u_all_item.shape[1] == len(dataset_val.x_columns)
 
         
-
         mean, var = self.forward(u_all_item)
         u_value = mean.detach().squeeze() # predicted value
 
@@ -273,8 +237,6 @@ class UserModel_Variance(nn.Module):
             if not hasattr(self, "n_rec"):
                 self.compile_UCB(len(u_value))
 
-            # with warnings.catch_warnings():
-            #     warnings.simplefilter("ignore")
             ucb_bound = (2 * np.log(self.n_rec) / self.n_each) ** 0.5
 
             u_value = u_value + torch.Tensor(ucb_bound).to(u_value.device)
@@ -297,7 +259,6 @@ class UserModel_Variance(nn.Module):
             self.n_rec += k
             self.n_each[recommended_id_transform] += 1
 
-        # print(int(index_rec), end=' ')
 
         recommended_id_raw = item_index[recommended_id_transform]
         value_rec = u_value.cpu().numpy()[index_rec]
@@ -322,7 +283,6 @@ class UserModel_Variance(nn.Module):
                 user_id = dataset_val.dataset_complete.x_numpy[:,dataset_val.user_col]
                 item_id = dataset_val.dataset_complete.x_numpy[:,dataset_val.item_col]
 
-                # xy_predict = pd.DataFrame([user_id, item_id, y_predict.squeeze()], columns={"user_id", "item_id", "y_pred"})
                 xy_predict = pd.DataFrame({"user_id":user_id, "item_id":item_id, "y_pred":y_complete_predict.squeeze()})
                 y = dataset_val.dataset_complete.get_y()
             else:
@@ -333,7 +293,6 @@ class UserModel_Variance(nn.Module):
 
             xy_predict["y_true"] = y
             xy_predict = xy_predict.astype(dtype={"user_id": "int64", "item_id": "int64", "y_pred": "float64"})
-            # df_score = xy_predict.groupby("user_id").agg(list)
 
             eval_result.update(self.metric_fun_ranking(xy_predict, ground_truth_positive, epoch=epoch))
 
@@ -348,7 +307,6 @@ class UserModel_Variance(nn.Module):
         model = self.eval()
 
         
-
         is_shuffle=False
         assert not is_shuffle
         test_loader = DataLoader(dataset=dataset_predict.get_dataset_eval(), shuffle=is_shuffle, batch_size=batch_size,
@@ -359,12 +317,10 @@ class UserModel_Variance(nn.Module):
 
         pred_ans = []
         with torch.no_grad():
-            # for _, x_test in enumerate(test_loader):
             for _, (x, y) in tqdm(enumerate(test_loader), total=steps_per_epoch, desc="Predicting data..."):
                 
 
                 x = x.to(self.device).float()
-                # y = y.to(self.device).float()
 
                 mean, var = model.forward(x)
                 y_pred = mean.cpu().data.numpy()  # .squeeze()
@@ -480,6 +436,5 @@ class UserModel_Variance(nn.Module):
 
     def save_model_embedding(self, ):
         self.embedding_dict
-
 
 
