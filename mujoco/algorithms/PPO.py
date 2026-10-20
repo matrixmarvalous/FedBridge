@@ -3,20 +3,7 @@ import torch.nn as nn
 from torch.distributions import MultivariateNormal
 from torch.distributions import Categorical
 
-# ################################## set device ##################################
-# print("============================================================================================")
-# # set device to cpu or cuda
-# device = torch.device('cpu')
-# if(torch.cuda.is_available()): 
-#     device = torch.device('cuda:0') 
-#     torch.cuda.empty_cache()
-#     print("Device set to : " + str(torch.cuda.get_device_name(device)))
-# else:
-#     print("Device set to : cpu")
-# print("============================================================================================")
 
-
-################################## PPO Policy ##################################
 class RolloutBuffer:
     def __init__(self):
         self.actions = []
@@ -165,9 +152,7 @@ class PPO:
             self.action_std = round(self.action_std, 4)
             if (self.action_std <= min_action_std):
                 self.action_std = min_action_std
-                # print("setting actor output action_std to min_action_std : ", self.action_std)
             else:
-                # print("setting actor output action_std to : ", self.action_std)
                 self.set_action_std(self.action_std)
 
         else:
@@ -180,8 +165,6 @@ class PPO:
             with torch.no_grad():
                 state = torch.FloatTensor(state).to(self.device)
                 action, action_logprob, state_val = self.policy_old.act(state)
-            # print(f'action_logprob is {action_logprob}')
-            # print(f'state_val is {state_val}')
             self.buffer.states.append(state)
             self.buffer.actions.append(action)
             self.buffer.logprobs.append(action_logprob)
@@ -212,9 +195,7 @@ class PPO:
             
         # Normalizing the rewards
         rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
-        # print(f'rewards 1 is {rewards}')
         rewards = (rewards - rewards.mean()) / (rewards.std() + 1e-7)
-        # print(f'rewards is {rewards}')
 
         # convert list to tensor
         old_states = torch.squeeze(torch.stack(self.buffer.states, dim=0)).detach().to(self.device)
@@ -249,14 +230,7 @@ class PPO:
             loss.mean().backward()
             self.optimizer.step()
             
-            # # check gradients (简洁版)
-            # for name, param in self.policy.named_parameters():
-            #     if param.grad is not None:
-            #         print(f"{name}: grad mean = {param.grad.mean():.6f}, std = {param.grad.std():.6f}")
-            #     else:
-            #         print(f"{name}: grad is None!")
 
-        # Copy new weights into old policy
         self.policy_old.load_state_dict(self.policy.state_dict())
 
         # clear buffer
@@ -270,6 +244,3 @@ class PPO:
         self.policy.load_state_dict(torch.load(checkpoint_path, map_location=lambda storage, loc: storage))
         
         
-       
-
-

@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     Weichen Shen,weichenswc@163.com
@@ -92,10 +91,6 @@ def get_feature_names(feature_columns):
     return list(features.keys())
 
 
-# def get_inputs_list(inputs):
-#     return list(chain(*list(map(lambda x: x.values(), filter(lambda x: x is not None, inputs)))))
-
-
 def build_input_features(feature_columns):
     # Return OrderedDict: {feature_name:(start, start+dimension)}
 
@@ -157,7 +152,6 @@ def get_varlen_pooling_list(embedding_dict, features, feature_index, varlen_spar
 
 def create_embedding_matrix(feature_columns, init_std=0.0001, linear=False, sparse=False, device='cpu'):
     # Return nn.ModuleDict: for sparse features, {embedding_name: nn.Embedding}
-    # for varlen sparse features, {embedding_name: nn.EmbeddingBag}
     sparse_feature_columns = list(
         filter(lambda x: isinstance(x, SparseFeat), feature_columns)) if len(feature_columns) else []
 
@@ -170,9 +164,6 @@ def create_embedding_matrix(feature_columns, init_std=0.0001, linear=False, spar
          sparse_feature_columns + varlen_sparse_feature_columns}
     )
 
-    # for feat in varlen_sparse_feature_columns:
-    #     embedding_dict[feat.embedding_name] = nn.EmbeddingBag(
-    #         feat.dimension, embedding_size, sparse=sparse, mode=feat.combiner)
 
     for tensor in embedding_dict.values():
         nn.init.normal_(tensor.weight, mean=0, std=init_std)
@@ -198,9 +189,6 @@ def embedding_lookup(X, sparse_embedding_dict, sparse_input_dict, sparse_feature
         feature_name = fc.name
         embedding_name = fc.embedding_name
         if (len(return_feat_list) == 0 or feature_name in return_feat_list):
-            # TODO: add hash function
-            # if fc.use_hash:
-            #     raise NotImplementedError("hash function is not implemented in this version!")
             lookup_idx = np.array(sparse_input_dict[feature_name])
             input_tensor = X[:, lookup_idx[0]:lookup_idx[1]].long()
             emb = sparse_embedding_dict[embedding_name](input_tensor)
@@ -216,7 +204,6 @@ def varlen_embedding_lookup(X, embedding_dict, sequence_input_dict, varlen_spars
         feature_name = fc.name
         embedding_name = fc.embedding_name
         if fc.use_hash:
-            # lookup_idx = Hash(fc.vocabulary_size, mask_zero=True)(sequence_input_dict[feature_name])
             # TODO: add hash function
             lookup_idx = sequence_input_dict[feature_name]
         else:

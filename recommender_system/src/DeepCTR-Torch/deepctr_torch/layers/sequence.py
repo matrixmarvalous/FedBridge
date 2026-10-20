@@ -142,7 +142,6 @@ class AttentionSequencePoolingLayer(nn.Module):
         outputs = torch.where(keys_masks, outputs, paddings)  # [B, 1, T]
 
         # Scale
-        # outputs = outputs / (keys.shape[-1] ** 0.05)
 
         if self.weight_normalization:
             outputs = F.softmax(outputs, dim=-1)  # [B, 1, T]
@@ -227,7 +226,6 @@ class AGRUCell(nn.Module):
         h_r, _, h_n = gh.chunk(3, 1)
 
         reset_gate = torch.sigmoid(i_r + h_r)
-        # update_gate = torch.sigmoid(i_z + h_z)
         new_state = torch.tanh(i_n + reset_gate * h_n)
 
         att_score = att_score.view(-1, 1)

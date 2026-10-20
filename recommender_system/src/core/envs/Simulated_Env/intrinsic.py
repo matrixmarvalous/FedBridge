@@ -3,9 +3,6 @@ import torch
 
 from src.core.envs.Simulated_Env.base import BaseSimulatedEnv
 
-# from virtualTB.model.UserModel import UserModel
-# from src.core.envs.VirtualTaobao.virtualTB.utils import *
-
 
 class IntrinsicSimulatedEnv(BaseSimulatedEnv):
     def __init__(self, ensemble_models,
@@ -26,7 +23,6 @@ class IntrinsicSimulatedEnv(BaseSimulatedEnv):
         if self.env_name == "VirtualTB-v0":
             feature = np.concatenate((self.cur_user, np.array([self.reward, 0, self.total_turn]), action), axis=-1)
             feature_tensor = torch.unsqueeze(torch.tensor(feature, device=self.user_model.device, dtype=torch.float), 0)
-            # pred_reward = self.user_model(feature_tensor).detach().cpu().numpy().squeeze().round()
             pred_reward = self.user_model.forward(feature_tensor).detach().cpu().numpy().squeeze()
             if pred_reward < 0:
                 pred_reward = 0
@@ -69,5 +65,5 @@ class IntrinsicSimulatedEnv(BaseSimulatedEnv):
         else:
             p_id = action
         item_pop = self.item_popularity[p_id]
-        nov = - np.log(item_pop+1e-10)  # nov \in xxxx   -log(0.0001) = 4  lambda 考虑~0.25
+        nov = - np.log(item_pop+1e-10)
         return nov

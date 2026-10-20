@@ -1,8 +1,4 @@
 # MuJoCo experiments
-
-<!-- Codex-modified 2026-09-10: replace the internal release notes with a
-concise usage guide; the previous version is preserved in the private archive. -->
-
 This directory contains the FedBridge training-performance and held-out
 zero-shot experiments for `HalfCheetah-v5`, `Hopper-v4`, and `Humanoid-v4`.
 Each experiment uses eight MPI ranks.

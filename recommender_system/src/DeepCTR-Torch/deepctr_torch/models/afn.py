@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     Weiyu Cheng, weiyu_cheng@sjtu.edu.cn

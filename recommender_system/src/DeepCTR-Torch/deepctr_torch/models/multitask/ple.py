@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     zanshuxun, zanshuxun@aliyun.com
@@ -78,7 +77,6 @@ class PLE(BaseModel):
                                                range(expert_num)])
                                 for _ in range(num_tasks)]) for level_num in range(num_level)])
 
-        # 1. experts
         # task-specific experts
         self.specific_experts = multi_module_list(self.num_levels, self.num_tasks, self.specific_expert_num,
                                                   self.input_dim, expert_dnn_hidden_units[-1], expert_dnn_hidden_units)
@@ -87,7 +85,6 @@ class PLE(BaseModel):
         self.shared_experts = multi_module_list(self.num_levels, 1, self.specific_expert_num,
                                                 self.input_dim, expert_dnn_hidden_units[-1], expert_dnn_hidden_units)
 
-        # 2. gates
         # gates for task-specific experts
         specific_gate_output_dim = self.specific_expert_num + self.shared_expert_num
         if len(gate_dnn_hidden_units) > 0:
@@ -120,7 +117,6 @@ class PLE(BaseModel):
                 expert_dnn_hidden_units[-1], shared_gate_output_dim, bias=False)
                 for level_num in range(self.num_levels)])
 
-        # 3. tower dnn (task-specific)
         if len(tower_dnn_hidden_units) > 0:
             self.tower_dnn = nn.ModuleList(
                 [DNN(expert_dnn_hidden_units[-1], tower_dnn_hidden_units, activation=dnn_activation,
@@ -147,7 +143,6 @@ class PLE(BaseModel):
     def cgc_net(self, inputs, level_num):
         # inputs: [task1, task2, ... taskn, shared task]
 
-        # 1. experts
         # task-specific experts
         specific_expert_outputs = []
         for i in range(self.num_tasks):
@@ -161,7 +156,6 @@ class PLE(BaseModel):
             shared_expert_output = self.shared_experts[level_num][0][k](inputs[-1])
             shared_expert_outputs.append(shared_expert_output)
 
-        # 2. gates
         # gates for task-specific experts
         cgc_outs = []
         for i in range(self.num_tasks):

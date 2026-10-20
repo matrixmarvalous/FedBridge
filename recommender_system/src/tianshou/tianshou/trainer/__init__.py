@@ -18,28 +18,26 @@ from tianshou.trainer.onpolicy import (
     onpolicy_trainer_iter,
 )
 
-from tianshou.trainer.fedonpolicy import (  # 文件名需与实际一致
+from tianshou.trainer.fedonpolicy import (
     FedOnpolicyTrainer,
     fedonpolicy_trainer,
     fedonpolicy_trainer_iter,
 )
 
-from tianshou.trainer.fedavgonpolicy import (  # 文件名需与实际一致
+from tianshou.trainer.fedavgonpolicy import (
     FedAvgOnpolicyTrainer,
     fedavgonpolicy_trainer,
     fedavgonpolicy_trainer_iter,
 )
 
 
-# Codex-modified 2026-08-18: the canonical Bridge PPO route is
-# fedbridgeonp below; remove the duplicated pre-release trainer export.
-from tianshou.trainer.fedbridgeavg import (  # 文件名需与实际一致
+from tianshou.trainer.fedbridgeavg import (
     FedBridgeAvgTrainer,
     fedbridgeavg_trainer,
     fedbridgeavg_trainer_iter,
 )
 
-from tianshou.trainer.fedonpolicy_push_avg import (  # 文件名需与实际一致
+from tianshou.trainer.fedonpolicy_push_avg import (
     FedOnpolicy_PushAvgTrainer,
     fedonpolicy_push_avg_trainer,
     fedonpolicy_push_avg_trainer_iter,
@@ -51,7 +49,6 @@ from tianshou.trainer.perfeddc import (
     perfeddc_trainer_iter,
 )
 
-# Codex-added 2026-05-19: pFedMe trainer export for EasyRL4Rec recommendation experiments.
 from tianshou.trainer.pfedme import (
     pFedMeTrainer,
     pfedme_trainer,
@@ -111,7 +108,6 @@ __all__ = [
     'PerFedDCTrainer',
     'perfeddc_trainer',
     'perfeddc_trainer_iter',
-    # Codex-added 2026-05-19: pFedMe baseline aligned with MuJoCo comparisons.
     'pFedMeTrainer',
     'pfedme_trainer',
     'pfedme_trainer_iter',

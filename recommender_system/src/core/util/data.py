@@ -22,7 +22,6 @@ def get_env_args(args):
         parser.set_defaults(is_userinfo=True)
         parser.set_defaults(is_binarize=True)
         parser.set_defaults(need_transform=False)
-        # args.entropy_on_user = True
         parser.add_argument("--entropy_window", type=int, nargs="*", default=[1,2])
         parser.add_argument("--rating_threshold", type=float, default=4)
         parser.add_argument("--yfeat", type=str, default="rating")
@@ -30,13 +29,11 @@ def get_env_args(args):
         parser.add_argument('--leave_threshold', default=6, type=float)
         parser.add_argument('--num_leave_compute', default=7, type=int)
         parser.add_argument('--max_turn', default=30, type=int)
-        # parser.add_argument('--window_size', default=3, type=int)
 
     elif env == "YahooEnv-v0":
         parser.set_defaults(is_userinfo=True)
         parser.set_defaults(is_binarize=True)
         parser.set_defaults(need_transform=False)
-        # args.entropy_on_user = True
         parser.add_argument("--entropy_window", type=int, nargs="*", default=[1,2])
         parser.add_argument("--rating_threshold", type=float, default=4)
         parser.add_argument("--yfeat", type=str, default="rating")
@@ -44,14 +41,12 @@ def get_env_args(args):
         parser.add_argument('--leave_threshold', default=120, type=float)
         parser.add_argument('--num_leave_compute', default=3, type=int)
         parser.add_argument('--max_turn', default=30, type=int)
-        # parser.add_argument('--window_size', default=3, type=int)
 
     elif env == "MovieLensEnv-v0":
         parser.set_defaults(is_userinfo=True)
         parser.set_defaults(is_binarize=True)
         parser.set_defaults(need_transform=True)
         parser.set_defaults(use_auxiliary=True)
-        # args.entropy_on_user = True
         parser.add_argument("--entropy_window", type=int, nargs="*", default=[1,2])
         parser.add_argument("--rating_threshold", type=float, default=4)
         parser.add_argument("--yfeat", type=str, default="rating")
@@ -59,13 +54,11 @@ def get_env_args(args):
         parser.add_argument('--leave_threshold', default=75, type=float)
         parser.add_argument('--num_leave_compute', default=7, type=int)
         parser.add_argument('--max_turn', default=30, type=int)
-        # parser.add_argument('--window_size', default=3, type=int)
 
     elif env == "KuaiRand-v0":
         parser.set_defaults(is_userinfo=False)
         parser.set_defaults(is_binarize=True)
         parser.set_defaults(need_transform=False)
-        # args.entropy_on_user = False
         parser.add_argument("--entropy_window", type=int, nargs="*", default=[1,2])
         parser.add_argument("--rating_threshold", type=float, default=1)
         parser.add_argument("--yfeat", type=str, default="is_click")
@@ -73,22 +66,17 @@ def get_env_args(args):
         parser.add_argument('--leave_threshold', default=0, type=float)
         parser.add_argument('--num_leave_compute', default=10, type=int)
         parser.add_argument('--max_turn', default=30, type=int)
-        # parser.add_argument('--window_size', default=3, type=int)
 
     elif env == "KuaiEnv-v0":
         parser.set_defaults(is_userinfo=False)
         parser.set_defaults(is_binarize=False)
         parser.set_defaults(need_transform=True)
-        # args.entropy_on_user = False
         parser.add_argument("--entropy_window", type=int, nargs="*", default=[1,2])
         parser.add_argument("--yfeat", type=str, default="watch_ratio_normed")
 
-        # parser.add_argument('--leave_threshold', default=1, type=float)
-        # parser.add_argument('--num_leave_compute', default=3, type=int)
         parser.add_argument('--leave_threshold', default=1, type=float)
         parser.add_argument('--num_leave_compute', default=9, type=int)
         parser.add_argument('--max_turn', default=30, type=int)
-        # parser.add_argument('--window_size', default=3, type=int)
 
     parser.add_argument('--force_length', type=int, default=10)
     parser.add_argument("--top_rate", type=float, default=0.8)
@@ -129,14 +117,12 @@ def get_true_env(args, read_user_num=None):
     elif args.env == "MovieLensEnv-v0":
         from src.core.envs.MovieLens.MovieLensEnv import MovieLensEnv
         from src.core.envs.MovieLens.MovieLensData import MovieLensData
-        # Codex-modified 2026-08-14: keep the licensed MovieLens-derived
-        # artifacts outside the public code tree when requested.
         root = os.environ.get(
             "EASYRL4REC_MOVIELENS_ROOT", os.path.join("data", "MovieLens")
         )
         args.DATAPATH = os.path.join(root, args.DATAPATH)
         args.PRODATAPATH = os.path.join(root, args.PRODATAPATH)
-        os.makedirs(args.PRODATAPATH, exist_ok=True)  # 确保处理目录存在
+        os.makedirs(args.PRODATAPATH, exist_ok=True)
         mat, lbe_user, lbe_item, mat_distance = MovieLensEnv.load_env_data(args.DATAPATH, args.PRODATAPATH)
         kwargs_um = {'datapath': args.DATAPATH,
                      'prodatapath': args.PRODATAPATH,

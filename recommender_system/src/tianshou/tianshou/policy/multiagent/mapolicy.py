@@ -31,9 +31,6 @@ class MultiAgentPolicyManager(BasePolicy):
 
         self.agent_idx = env.agent_idx
         for i, policy in enumerate(policies):
-            # Codex-modified 2026-08-18: clarify this generic placeholder role.
-            # agent_id 0 is reserved for the environment placeholder
-            # (this MultiAgentPolicyManager)
             policy.set_agent_id(env.agents[i])
 
         self.policies = dict(zip(env.agents, policies))

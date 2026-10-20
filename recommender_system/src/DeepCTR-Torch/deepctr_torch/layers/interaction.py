@@ -200,8 +200,6 @@ class CIN(nn.Module):
             else:
                 self.field_nums.append(size)
 
-        #         for tensor in self.conv1ds:
-        #             nn.init.normal_(tensor.weight, mean=0, std=init_std)
         self.to(device)
 
     def forward(self, inputs):
@@ -217,10 +215,8 @@ class CIN(nn.Module):
             # x^(k-1) * x^0
             x = torch.einsum(
                 'bhd,bmd->bhmd', hidden_nn_layers[-1], hidden_nn_layers[0])
-            # x.shape = (batch_size , hi * m, dim)
             x = x.reshape(
                 batch_size, hidden_nn_layers[-1].shape[1] * hidden_nn_layers[0].shape[1], dim)
-            # x.shape = (batch_size , hi, dim)
             x = self.conv1ds[i](x)
 
             if self.activation is None or self.activation == 'linear':
@@ -369,7 +365,6 @@ class InteractingLayer(nn.Module):
             raise ValueError(
                 "Unexpected inputs dimensions %d, expect to be 3 dimensions" % (len(inputs.shape)))
 
-        # None F D
         querys = torch.tensordot(inputs, self.W_Query, dims=([-1], [0]))
         keys = torch.tensordot(inputs, self.W_key, dims=([-1], [0]))
         values = torch.tensordot(inputs, self.W_Value, dims=([-1], [0]))
@@ -626,7 +621,6 @@ class OutterProductLayer(nn.Module):
                        for idx in row], dim=1)  # batch num_pairs k
         q = torch.cat([embed_list[idx] for idx in col], dim=1)
 
-        # -------------------------
         if self.kernel_type == 'mat':
             p.unsqueeze_(dim=1)
             # k     k* pair* k
@@ -659,7 +653,6 @@ class OutterProductLayer(nn.Module):
 
                 dim=-1)
         else:
-            # 1 * pair * (k or 1)
 
             k = torch.unsqueeze(self.kernel, 0)
 

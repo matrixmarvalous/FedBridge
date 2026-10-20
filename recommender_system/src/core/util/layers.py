@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/27 11:52 上午
-# @Author  : Chongming GAO
-# @FileName: layers.py
+
 import math
 
 import numpy as np

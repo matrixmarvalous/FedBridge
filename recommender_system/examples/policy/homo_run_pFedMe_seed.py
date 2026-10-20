@@ -1,11 +1,8 @@
-# Codex-added 2026-05-21: seed-aware experiment entrypoint for EasyRL4Rec confidence-interval sweeps; original runner kept unchanged.
 import argparse
 import sys
 import traceback
 from gymnasium.spaces import Discrete
 import numpy as np
-
-# Codex-added 2026-05-19: EasyRL4Rec homo3 pFedMe runner adapted from homo_run_PerFedDC.py.
 
 
 import torch
@@ -14,7 +11,6 @@ sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 
 from policy_utils import get_args_all, learn_policy, prepare_dir_log, prepare_user_model, setup_state_tracker, prepare_train_test_envs
 
-# os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 from src.core.collector.collector_set import CollectorSet
 from src.core.util.data import get_env_args
@@ -25,20 +21,15 @@ from src.tianshou.tianshou.data import VectorReplayBuffer
 
 from src.tianshou.tianshou.utils.net.common import ActorCritic, Net
 from src.tianshou.tianshou.utils.net.discrete import Actor, Critic
-# Codex-modified 2026-05-19: original copied runner imported PerFedDCPolicy.
-# from src.tianshou.tianshou.policy import PerFedDCPolicy
 from src.tianshou.tianshou.policy import pFedMePolicy
 
 
-#新加的-----------------
 from mpi4py import MPI
 import os
 import time
 from datetime import datetime
-#新加的-------------
 
 
-# from util.upload import my_upload
 import logzero
 
 try:
@@ -64,14 +55,12 @@ def get_args_PPO():
     
     parser.add_argument('--comm_times_per_epoch', type=int, default=25,
                         help='每个 epoch 期望通信次数（与 updates_per_epoch 换算 comm_interval）')
-    # Codex-modified 2026-05-19: original PerFedDC defaults were lambda_l2=0.01, beta=0.005.
     parser.add_argument('--lambda_l2', type=float, default=0.001,
                         help='pFedMe Moreau/L2 regularization coefficient')
     parser.add_argument('--beta', type=float, default=0.05,
                         help='pFedMe global-model pull step')
 
     
-    # Codex-modified 2026-05-19: original copied default was "PPO"; use a traceable log prefix for pFedMe.
     parser.add_argument("--message", type=str, default="pFedMe_homo3")
     parser.add_argument("--hetero_degree", type=int, default=2,
     help="0=IID, larger -> more heterogeneous; affects Dirichlet α etc.")
@@ -92,17 +81,9 @@ def setup_policy_model(args, state_tracker, train_envs, test_envs_dict):
     actor = Actor(net, args.action_shape, device=args.device).to(args.device)
     critic = Critic(net, device=args.device).to(args.device)
     actor_critic = ActorCritic(actor, critic)
-    # if torch.cuda.is_available():
-    #     actor = DataParallelNet(
-    #         Actor(net, args.action_shape, device=None).to(args.device)
-    #     )
-    #     critic = DataParallelNet(Critic(net, device=None).to(args.device))
-    # else:
-    #     actor = Actor(net, args.action_shape, device=args.device).to(args.device)
-    #     critic = Critic(net, device=args.device).to(args.device)
 
-    net_hat = Net(args.state_dim, hidden_sizes=args.hidden_sizes, device=args.device)  # 新增
-    actor_hat = Actor(net_hat, args.action_shape, device=args.device).to(args.device) ## bridge新加
+    net_hat = Net(args.state_dim, hidden_sizes=args.hidden_sizes, device=args.device)
+    actor_hat = Actor(net_hat, args.action_shape, device=args.device).to(args.device)
     critic_hat = Critic(net_hat, device=args.device).to(args.device)
     
     
@@ -112,8 +93,6 @@ def setup_policy_model(args, state_tracker, train_envs, test_envs_dict):
     actor_critic_hat = ActorCritic(actor_hat, critic_hat)
 
     dist = torch.distributions.Categorical
-    # Codex-modified 2026-05-19: original copied runner constructed PerFedDCPolicy.
-    # policy = PerFedDCPolicy(...)
     policy = pFedMePolicy(
         actor,
         critic,
@@ -133,11 +112,11 @@ def setup_policy_model(args, state_tracker, train_envs, test_envs_dict):
         deterministic_eval=True,
         advantage_normalization=args.norm_adv,
         recompute_advantage=args.recompute_adv,
-        actor_hat = actor_hat,  ### 新加
-        critic_hat = critic_hat,  ### 新加
-        lr = args.lr,   ### 新加
-        lambda_l2 = args.lambda_l2,   ### 新加
-        beta = args.beta,   ### 新加
+        actor_hat = actor_hat,
+        critic_hat = critic_hat,
+        lr = args.lr,
+        lambda_l2 = args.lambda_l2,
+        beta = args.beta,
         action_bound_method="",  # not clip  # follow A2C?
         action_scaling=False
     )
@@ -149,77 +128,53 @@ def setup_policy_model(args, state_tracker, train_envs, test_envs_dict):
     train_collector = Collector(
         rec_policy, train_envs,
         VectorReplayBuffer(args.buffer_size, len(train_envs)),
-        # preprocess_fn=state_tracker.build_state,
         exploration_noise=args.exploration_noise,
         remove_recommended_ids = args.remove_recommended_ids
     )
 
     test_collector_set = CollectorSet(rec_policy, test_envs_dict, args.buffer_size, args.test_num,
-                                    #   preprocess_fn=state_tracker.build_state,
                                       exploration_noise=args.exploration_noise,
                                       force_length=args.force_length)
 
     return rec_policy, train_collector, test_collector_set, optim
 
 
-
-
-
 def main(args):
     print(f'main begin', flush = True)
-    # ---------- 1. MPI 初始化 ----------
+
     comm  = MPI.COMM_WORLD
     rank  = comm.Get_rank()
     size  = comm.Get_size()
 
-    # ---------- 2. 把 MPI 信息塞进 args ----------
+
     args.rank          = rank
     args.world_size    = size
     args.rota          = [2 ** i for i in range(int(np.log2(size - 1)) + 1)] if size > 1 else [1]
-    # 若想在 Trainer 里用，保持同样字段名即可
-    # 通信步长可以来自命令行，也可以在这里硬编码
-    # args.comm_times_per_epoch = getattr(args, "comm_times_per_epoch", 25)
-    # args.lambda_kl = getattr(args, 'lambda_kl', 0.005)
 
-    # 下面分配user_model
+
     pattern = list("ABCABCAC")
     
-    # 假设命令行传入的是类似 "pointneg"，或者 "pointnegC"
-    # 我们要去掉尾部已有的 A/B/C 再拼接新的
-    base_msg = 'homo3_pointneg'  # 去掉末尾的 A/B/C
+
+    base_msg = 'homo3_pointneg'
     
     args.read_message = base_msg + pattern[rank % len(pattern)]
 
-    letter = pattern[rank % len(pattern)]  # 当前进程对应的 A/B/C
+    letter = pattern[rank % len(pattern)]
 
-    # A→sub1, B→sub2, C→sub3 映射并设置路径
+
     subset_map = {'A': 'sub1', 'B': 'sub2', 'C': 'sub3'}
     subset = subset_map[letter]
     print(f'datapath begin', flush = True)
     
-    # root = os.path.join("data", "MovieLens")
     args.DATAPATH = f"homo3_data_raw_{subset}"
     args.PRODATAPATH = f"homo3_data_processed_{subset}"
-    # os.makedirs(args.PRODATAPATH, exist_ok=True)  # 确保处理目录存在
 
-    
-    # # 设备选择
-    # num_gpus = torch.cuda.device_count()
-    # local_rank_env = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK")
-    # local_rank = int(local_rank_env) if local_rank_env is not None else rank % max(num_gpus, 1)
-    # torch.cuda.set_device(local_rank if num_gpus else -1)
-    # device = torch.device(f"cuda:{local_rank}" if num_gpus else "cpu")
-    
-    # if device.type == "cuda":
-    #     print(f"[Rank {rank}] Using GPU {torch.cuda.get_device_name(local_rank)}", flush=True)
-    # else:
-    #     print(f"[Rank {rank}] Using CPU", flush=True)
 
     num_gpus = torch.cuda.device_count()
     local_rank_env = os.environ.get("OMPI_COMM_WORLD_LOCAL_RANK")
     
     if num_gpus > 0:
-        # 如果有 GPU，确保 local_rank 在有效范围
+
         if local_rank_env is not None:
             local_rank = min(int(local_rank_env), num_gpus - 1)
         else:
@@ -228,24 +183,18 @@ def main(args):
         device = torch.device(f"cuda:{local_rank}")
         print(f"[Rank {rank}] Using GPU {torch.cuda.get_device_name(local_rank)}", flush=True)
     else:
-        # 无 GPU 直接使用 CPU
+
         device = torch.device("cpu")
         print(f"[Rank {rank}] Using CPU", flush=True)
 
     
-    # 旋转拓扑用于 bridge 网络同步
     args.rota = [2 ** i for i in range(int(np.log2(size - 1)) + 1)] if size > 1 else [1]
     
-    # Codex-modified 2026-05-21: original seed runner used args.verbose_sync = True.
-    # args.verbose_sync = True
     args.verbose_sync = not getattr(args, "quiet_progress", False)
 
-    # Codex-modified 2026-08-14: use the required user-supplied base across
-    # ranks; no paper seed value is embedded.
     args.seed = int(args.seed)
     
 
-    #新加的-------------
     print(f'prepare end', flush = True)
         
     # %% 1. Prepare the saved path.
@@ -265,14 +214,10 @@ def main(args):
     
     print(f'setup policy end ', flush = True)
 
-    # %% 4. Learn policy
-    # Codex-modified 2026-05-19: original copied runner used trainer="perfeddc".
     learn_policy(args, env, dataset, policy, train_collector, test_collector_set, state_tracker, optim, MODEL_SAVE_PATH,
                  logger_path, comm, trainer="pfedme")
     
     
-
-
 if __name__ == '__main__':
     trainer = "onpolicy"
     args_all = get_args_all(trainer)
@@ -286,5 +231,4 @@ if __name__ == '__main__':
         var = traceback.format_exc()
         print(var)
         logzero.logger.error(var)
-        # Codex-modified 2026-08-14: make MPI/Slurm failure status reliable.
         raise

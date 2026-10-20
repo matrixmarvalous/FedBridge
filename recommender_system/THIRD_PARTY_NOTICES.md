@@ -1,7 +1,4 @@
 # Third-party notices
-
-<!-- Codex-added 2026-08-14: identify vendored projects and the excluded dataset without replacing their license texts. -->
-
 This EasyRL4Rec experiment package contains or derives from the components below. This notice is informational and does not replace their complete license texts, which are distributed at the top level under `licenses/`.
 
 ## EasyRL4Rec
@@ -46,4 +43,3 @@ Dataset citation:
 
 ## Release authors' code
 
-New orchestration, validation, aggregation, plotting and documentation files carry dated `Codex-added` comments for auditability. Their repository-level licensing should be declared by the project owner before public deposit.

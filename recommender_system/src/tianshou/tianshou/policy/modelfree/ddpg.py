@@ -95,7 +95,6 @@ class DDPGPolicy(BasePolicy):
         self._gamma = gamma
         self._noise = exploration_noise
         # it is only a little difference to use GaussianNoise
-        # self.noise = OUNoise()
         self._rew_norm = reward_normalization
         self._n_step = estimation_step
         self.optim_state = optim_state
@@ -118,7 +117,6 @@ class DDPGPolicy(BasePolicy):
         self.soft_update(self.critic_old, self.critic, self.tau)
 
     def _target_q(self, batch, buffer: ReplayBuffer, indices: np.ndarray) -> torch.Tensor:
-        # batch = buffer[indices]  # batch.obs_next: s_{t+n}
         obs_next_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=False)
         target_q = self.critic_old(
             obs_next_emb,
@@ -160,13 +158,11 @@ class DDPGPolicy(BasePolicy):
             more detailed explanation.
         """
         model = getattr(self, model)
-        # obs = batch[input]
         is_obs = True if input == "obs" else False
         obs_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=is_obs, batch=batch,  is_train=is_train, use_batch_in_statetracker=use_batch_in_statetracker)
         actions, hidden = model(obs_emb, state=state, info=batch.info)
         return Batch(act=actions, state=hidden)
 
-    # @staticmethod
     def _mse_optimizer(
         self, batch: Batch, critic: torch.nn.Module, optimizer: torch.optim.Optimizer
     ) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -176,7 +172,6 @@ class DDPGPolicy(BasePolicy):
         current_q = critic(obs_emb, batch.act).flatten()
         target_q = batch.returns.flatten()
         td = current_q - target_q
-        # critic_loss = F.mse_loss(current_q1, target_q)
         critic_loss = (td.pow(2) * weight).mean()
         optimizer.zero_grad()
         critic_loss.backward()

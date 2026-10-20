@@ -5,7 +5,6 @@ import torch
 
 from tianshou.data import Batch, ReplayBuffer
 from tianshou.policy import DiscreteBCQPolicy
-# from tianshou.utils.rec_mask import get_recommended_ids, removed_recommended_id_from_embedding
 
 class SQNPolicy(DiscreteBCQPolicy):
     def __init__(
@@ -43,7 +42,6 @@ class SQNPolicy(DiscreteBCQPolicy):
         use_batch_in_statetracker=False,
         **kwargs: Any,
     ) -> Batch:
-        # obs = batch[input]
         is_obs = True if input == "obs" else False
         obs_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=is_obs, batch=batch,  is_train=is_train, use_batch_in_statetracker=use_batch_in_statetracker)
         q_value, state = self.model(obs_emb, state=state, info=batch.info)

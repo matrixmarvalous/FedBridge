@@ -397,7 +397,6 @@ class Perturbation(nn.Module):
         device: Union[str, int, torch.device] = "cpu",
         phi: float = 0.05
     ):
-        # preprocess_net: input_dim=state_dim+action_dim, output_dim=action_dim
         super(Perturbation, self).__init__()
         self.preprocess_net = preprocess_net
         self.device = device

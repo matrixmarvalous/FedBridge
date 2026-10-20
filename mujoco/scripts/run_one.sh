@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Codex-added 2026-08-14: thin portable wrapper around the copied MPI launcher.
 set -euo pipefail
 
 : "${ENV_NAME:?Set ENV_NAME to HalfCheetah-v5, Hopper-v4, or Humanoid-v4}"

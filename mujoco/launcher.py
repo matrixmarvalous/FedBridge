@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-07-23: one method x environment x seed audited MPI runner.
-# Codex-modified 2026-08-14: portable public launcher copied from the audited
-# runner; paper seeds are not embedded and algorithm logic is unchanged.
-# Codex-modified 2026-08-18: consume the BridgePPO module and Bridge metric keys.
 from __future__ import annotations
 
 import argparse
@@ -102,7 +98,6 @@ def source_manifest() -> List[Dict[str, str]]:
         THIS_DIR / "runtime_support.py",
         THIS_DIR / "launcher.py",
         ALGORITHMS_DIR / "PPO.py",
-        # Codex-modified 2026-08-19: final public module name.
         ALGORITHMS_DIR / "BridgePPO.py",
         ALGORITHMS_DIR / "perfeddc_ppo.py",
         ALGORITHMS_DIR / "pfedme_ppo.py",

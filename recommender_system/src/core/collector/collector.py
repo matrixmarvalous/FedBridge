@@ -74,7 +74,6 @@ class Collector(object):
         self.force_length = force_length
 
     
-
     def _assign_buffer(self, buffer: Optional[ReplayBuffer]) -> None:
         """Check if the buffer matches the constraint."""
         if buffer is None:
@@ -141,11 +140,6 @@ class Collector(object):
 
         self.buffer.reset(keep_statistics=keep_statistics)
 
-        # ## Chongming
-        # if batched_data is not None and batched_ids is not None:
-        #     ptr, ep_rew, ep_len, ep_idx = self.buffer.add(
-        #         batched_data, buffer_ids=batched_ids
-        #     )
 
     def reset_state_tracker(self, global_ids=None) -> None:
         """Reset the state tracker."""
@@ -164,25 +158,6 @@ class Collector(object):
         self.data.rew_prev = np.zeros(len(obs))
         self.data.is_start = np.ones(len(obs), dtype=bool)
 
-
-        # self.data.terminated = np.ones(self.env_num, dtype=bool)
-        # self.data.truncated = np.zeros(self.env_num, dtype=bool)
-        # self.data.rew = np.zeros(self.env_num)
-        # self.data.obs = np.ones(self.env_num) * -1
-        # self.data.act = np.ones(self.env_num) * -1
-        # self.reset_buffer(batched_data=self.data, batched_ids=np.arange(self.env_num), keep_statistics=False)
-
-        # self.reset_state_tracker()
-
-        # initialize the statetracker with the user's id.
-        # if self.preprocess_fn:
-        #     processed_data = self.preprocess_fn(
-        #         obs=obs, info=info, env_id=np.arange(self.env_num)
-        #         )
-        #     obs = processed_data.get("obs", obs)
-        #     info = processed_data.get("info", info)
-        # self.data.info = info
-        # self.data.obs = obs
 
     def _reset_state(self, id: Union[int, List[int]]) -> None:
         """Reset the hidden state: self.data.state[id]."""
@@ -210,33 +185,6 @@ class Collector(object):
         self.data.rew_prev[local_ids] = np.zeros(len(obs_reset))
         self.data.is_start[local_ids] = np.ones(len(obs_reset), dtype=bool)
         
-        # # Note: here, obs_reset is users' id
-        # batched_data = Batch(
-        #     obs_next = obs_reset,
-        #     info = info,
-        #     terminated = np.ones(len(global_ids), dtype=bool),
-        #     truncated = np.zeros(len(global_ids), dtype=bool),
-        #     rew = np.zeros(len(global_ids)),
-        #     obs = np.ones(self.env_num) * -1,
-        #     act = np.ones(self.env_num) * -1
-        # )
-        # self.reset_buffer(batched_data=batched_data, batched_ids=global_ids, keep_statistics=True)
-
-        # self.reset_state_tracker(global_ids)
-
-        # if self.preprocess_fn:
-        #     processed_data = self.preprocess_fn(
-        #         obs=obs_reset, info=info, env_id=global_ids
-        #     )
-        #     obs_reset = processed_data.get("obs", obs_reset)
-        #     info = processed_data.get("info", info)
-        
-        
-        # info = [{"cum_reward": item["cum_reward"], "env_id": value} for item, value in zip(info, global_ids)]
-        # self.data.info[local_ids] = info
-        
-        # self.data.obs_next[local_ids] = obs_reset
-        # self.data[local_ids] = batched_data
 
     def collect(
         self,
@@ -300,15 +248,12 @@ class Collector(object):
             ready_env_ids = np.arange(min(self.env_num, n_episode))
             self.data = self.data[:min(self.env_num, n_episode)]
 
-        # self.data = self.data[:min(self.env_num, n_episode)]
-        # self.reset()  # Instead of using the last obs, we generate new obs using updated parameters.
         else:
             raise TypeError(
                 "Please specify at least one (either n_step or n_episode) "
                 "in AsyncCollector.collect()."
                 )
     
-        # self.reset() # chongming added
 
         start_time = time.time()
 
@@ -326,7 +271,7 @@ class Collector(object):
         while True:
             assert len(self.data) == len(ready_env_ids)
             # restore the state: if the last state is None, it won't store
-            last_state = self.data.policy.pop("hidden_state", None)  # Todo: 这里在pg下是空的！
+            last_state = self.data.policy.pop("hidden_state", None)
 
             # get the next action
             if random:
@@ -351,7 +296,7 @@ class Collector(object):
                 else:
                     result = self.policy(self.data, self.buffer, indices=indices, is_obs=True, state=last_state, remove_recommended_ids=self.remove_recommended_ids, is_train=is_train, use_batch_in_statetracker=True)
                 # update state / act / policy into self.data
-                policy = result.get("policy", Batch())  # Todo: 这里在pg下是空的！
+                policy = result.get("policy", Batch())
                 assert isinstance(policy, Batch)
                 state = result.get("state", None)
                 if state is not None:
@@ -398,10 +343,7 @@ class Collector(object):
             if render:
                 render_result = self.env.render()
                 render_list.append(render_result)
-                # if render > 0 and not np.isclose(render, 0):
-                #     time.sleep(render)
 
-            # add data into the buffer
             ptr, ep_rew, ep_len, ep_idx = self.buffer.add(
                 self.data, buffer_ids=ready_env_ids
                 )
@@ -437,7 +379,7 @@ class Collector(object):
                         ready_env_ids = ready_env_ids[mask]
                         self.data = self.data[mask]
 
-            self.data.obs = self.data.obs_next  # Todo: 注意这里的状态更新
+            self.data.obs = self.data.obs_next
 
             if (n_step and step_count >= n_step) or \
                     (n_episode and episode_count >= n_episode):

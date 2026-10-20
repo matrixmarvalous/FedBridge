@@ -5,9 +5,6 @@ import torch
 from torch import FloatTensor
 
 
-# from virtualTB.model.UserModel import UserModel
-# from src.core.envs.VirtualTaobao.virtualTB.utils import *
-
 class BaseSimulatedEnv(gym.Env):
     def __init__(self, ensemble_models,
                  env_task_class, task_env_param: dict, task_name: str,
@@ -29,8 +26,6 @@ class BaseSimulatedEnv(gym.Env):
 
         self.reset()
 
-    # def compile(self, num_env=1):
-    #     self.env_list = DummyVectorEnv([lambda: gym.make(self.env_task) for _ in range(num_env)])
 
     def _construct_state(self, reward):
         res = self.env_task.state
@@ -52,7 +47,6 @@ class BaseSimulatedEnv(gym.Env):
             self.cur_user = self.state[:-3]
         else:  # elif self.env_name == "KuaiEnv-v0":
             self.cur_user = self.state[0]
-        # return self.state, {'key': 1, 'env': self}  ## TODO key
         return self.state, {'cum_reward': 0.0}
 
     def render(self, mode='human', close=False):
@@ -62,7 +56,6 @@ class BaseSimulatedEnv(gym.Env):
         if self.env_name == "VirtualTB-v0":
             feature = np.concatenate((self.cur_user, np.array([self.reward, 0, self.total_turn]), action), axis=-1)
             feature_tensor = torch.unsqueeze(torch.tensor(feature, device=self.user_model.device, dtype=torch.float), 0)
-            # pred_reward = self.user_model(feature_tensor).detach().cpu().numpy().squeeze().round()
             pred_reward = self.user_model.forward(feature_tensor).detach().cpu().numpy().squeeze()
             if pred_reward < 0:
                 pred_reward = 0
@@ -75,7 +68,6 @@ class BaseSimulatedEnv(gym.Env):
         return pred_reward
 
     def step(self, action: FloatTensor):
-        # 1. Collect ground-truth transition info
         self.action = action
         # real_state, real_reward, real_done, real_info = self.env_task.step(action)
         real_state, real_reward, real_terminated, real_truncated, real_info = self.env_task.step(action)
@@ -85,7 +77,6 @@ class BaseSimulatedEnv(gym.Env):
         if t < self.env_task.max_turn:
             self._add_action_to_history(t, action)
 
-        # 2. Predict click score, i.e, reward
         pred_reward = self._compute_pred_reward(action)
 
         self.cum_reward += pred_reward
@@ -93,19 +84,16 @@ class BaseSimulatedEnv(gym.Env):
 
         terminated = real_terminated
         # Rethink commented, do not use new user as new state
-        # if terminated:
         #     self.state, self.info = self.env_task.reset()
 
         self.state = self._construct_state(pred_reward)
         
-        # info =  {'CTR': self.cum_reward / self.total_turn / 10}
         info =  {'cum_reward': self.cum_reward}
         truncated = False
 
         return self.state, pred_reward, terminated, truncated, info
 
     def _reset_history(self):
-        # self.history_action = {}
         if self.env_name == "VirtualTB-v0":
             self.history_action = np.zeros([self.env_task.max_turn, self.env_task.action_space.shape[0]])
         else:  # elif self.env_name == "KuaiEnv-v0":

@@ -56,19 +56,16 @@ class StateTracker_NextItNet(StateTracker_Base):
             ]
         )
         self.final_dim = self.hidden_size
-        # self.s_fc = nn.Linear(self.hidden_size, self.num_item)
 
 
     def forward(self, buffer=None, indices=None, is_obs=None, batch=None, is_train=True, use_batch_in_statetracker=False, **kwargs):
         seq, mask, len_states = self.convert_to_k_state_embedding(buffer, indices=indices, is_obs=is_obs, batch=batch, use_batch_in_statetracker=use_batch_in_statetracker, is_train=is_train)
-        # seq *= mask
         conv_out = seq
         for cnn in self.cnns:
             conv_out = cnn(conv_out)
             conv_out *= mask
         state_final = extract_axis_1(conv_out, len_states - 1).squeeze(1)
 
-        # supervised_output = self.s_fc(state_hidden).squeeze()
         return state_final
 
 

@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: record copied-versus-release source checksums.
-# Codex-modified 2026-08-18: resolve public Bridge paths through an explicit
-# historical rename table and distinguish renames from other bounded edits.
-# Codex-modified 2026-08-19: remove two unreferenced standalone legacy modules.
 from __future__ import annotations
 
 import argparse
@@ -74,9 +70,6 @@ def main() -> None:
             {
                 "release_path": relative.as_posix(),
                 "source_path": relative_source.as_posix(),
-                # Codex-modified 2026-08-14: an original runner hash can act
-                # as a guessing oracle for the deliberately removed, low-entropy
-                # experiment seed text. Preserve it only for byte-identical files.
                 "source_sha256": (
                     source_hash if copy_status == "byte_preserved" else "withheld"
                 ),

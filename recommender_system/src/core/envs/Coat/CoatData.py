@@ -7,7 +7,6 @@ import numpy as np
 sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.BaseData import BaseData, get_distance_mat
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/Coat"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 PRODATAPATH = os.path.join(ROOTPATH, "data_processed")
@@ -146,7 +145,6 @@ class CoatData(BaseData):
         return mat
 
 
- 
 if __name__ == "__main__":
     dataset = CoatData()
     df_train, df_user_train, df_item_train, _ = dataset.get_train_data()

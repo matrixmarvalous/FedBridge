@@ -1,9 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-07-23: shared runtime adapters, environment construction and communication.
-# Codex-modified 2026-08-14: import the packaged FedBridge algorithms from the
-# publication directory instead of the private experiment directory.
-# Codex-modified 2026-08-18: normalize dual-policy class, attribute and
-# checkpoint metadata names; numerical behavior is retained.
 from __future__ import annotations
 
 import json
@@ -118,7 +113,6 @@ def build_agent(
     device: torch.device,
 ):
     from PPO import PPO
-    # Codex-modified 2026-08-19: import the final public module name.
     from BridgePPO import BridgePPO
     from perfeddc_ppo import perFedDC_PPO
     from pfedme_ppo import pFedMe_PPO

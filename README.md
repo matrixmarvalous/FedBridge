@@ -1,9 +1,4 @@
 # FedBridge
-
-<!-- Codex-modified 2026-09-10: concise code-only README following the
-organization of Networked-MB-MARL; the previous version is in the private
-publication archive. -->
-
 Code for the paper *Towards Personalized Collaborative Reinforcement Learning
 with Decoupled Bridge Policy Distillation*.
 

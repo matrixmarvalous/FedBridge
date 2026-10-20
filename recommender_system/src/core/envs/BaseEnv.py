@@ -58,7 +58,6 @@ class BaseEnv(ABC, gym.Env):
         self.action = self.__item_generator()
         self._reset_history()
 
-        # return self.state, {'key': 1, 'env': self}
         return self.state, {'cum_reward': 0.0}
     
 

@@ -28,7 +28,6 @@ class PrioritizedReplayBuffer(ReplayBuffer):
         **kwargs: Any
     ) -> None:
         # will raise KeyError in PrioritizedVectorReplayBuffer
-        # super().__init__(size, **kwargs)
         ReplayBuffer.__init__(self, size, **kwargs)
         assert alpha > 0.0 and beta >= 0.0
         self._alpha, self._beta = alpha, beta

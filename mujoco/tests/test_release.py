@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-14: standard-library release/configuration checks.
-# Codex-modified 2026-08-18: validate the BridgePPO public naming surface.
 from __future__ import annotations
 
 import hashlib
@@ -21,11 +19,11 @@ from runtime_support import build_agent, make_dynamics_env  # noqa: E402
 
 
 EXPECTED_ALGORITHM_HASHES = {
-    "PPO.py": "3041d2c9e06a6bfb19bd3c820a1bf1c29c2a0a742edabf63e683334f317d6e69",
-    "BridgePPO.py": "76e11b935abacf633952a10e3da86f99f954e2dcac77c528113af3e57ab2be9d",
-    "perfeddc_ppo.py": "f0f1b27d3dd12e127dfe420e12a8e71d2dc79c85eaa102e3d8fdd20df4185694",
-    "pfedme_ppo.py": "0001b4d112ba60acd18ade8682ab14fec378f9f1a20d8516ca16e9fe3a071642",
-    "single_critic_fedbridge.py": "85fe5c8946aa5ad15711b42690e70d7ed5fa1692ccc3d9f8493f6fcbd979f07f",
+    "PPO.py": "979c21f8bdb87279ab9dea3775368f45a934525e2dafb043be35f8b9c2f6dc19",
+    "BridgePPO.py": "60e42d5866b2a2d8bf0dcd5110ae999b2b92390dc0a64d17237a4196197f8daa",
+    "perfeddc_ppo.py": "2a6f13b0ec6398267a8b309a45754f0509ae54dbee5b141b6fa4eb7146953dcc",
+    "pfedme_ppo.py": "2e53c95fb1b606adf902789f676faff7da9575a529769db76cf95562d528a180",
+    "single_critic_fedbridge.py": "ec78d5b32cf09591f2c00ef9e352d409d3c36aab90f118dc1a4c9d5ce7807cfc",
 }
 
 

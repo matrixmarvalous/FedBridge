@@ -1,18 +1,14 @@
-# -*- coding: utf-8 -*-
 import argparse
 import os
 import pandas as pd
 import numpy as np
 
 
-
-# CODEPATH = os.path.dirname(__file__)
 CODEPATH = "data/KuaiRec"
 DATAPATH = os.path.join(CODEPATH, "data_raw")
 
 def parse_args_processed():
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--method", type=str, default='gaussian')
     parser.add_argument("--method", type=str, default='maxmin')
     args = parser.parse_known_args()[0]
     return args
@@ -64,8 +60,6 @@ def get_normalized_data():
         max_thres = np.percentile(df_big["watch_ratio_normed"], 98)
         df_big.loc[df_big["watch_ratio_normed"] > max_thres, "watch_ratio_normed"] = max_thres
         df_small.loc[df_small["watch_ratio_normed"] > max_thres, "watch_ratio_normed"] = max_thres
-    #
-    # mylist = df[["video_id", "watch_ratio"]].groupby("video_id").agg(list)["watch_ratio"]
 
     df_big.loc[df_big["watch_ratio_normed"].isna(),"watch_ratio_normed"] = 0
     df_small.loc[df_small["watch_ratio_normed"].isna(),"watch_ratio_normed"] = 0

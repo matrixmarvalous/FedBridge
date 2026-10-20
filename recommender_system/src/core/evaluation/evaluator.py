@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-# @Time    : 2021/7/26 5:01 下午
-# @Author  : Chongming GAO
-# @FileName: evaluation.py
+
 import numpy as np
 import torch
 
@@ -12,9 +9,7 @@ from src.core.evaluation.metrics import get_diversity, get_novelty
 class Evaluator_Feat():
     def __init__(self, test_collector_set, df_item_val, need_transform, item_feat_domination, lbe_item, top_rate, draw_bar=False):
         self.collector_dict = test_collector_set.collector_dict
-        # self.num_items = test_collector_set.env.get_env_attr("mat")[0].shape[1]
 
-        # self.env = env
         self.df_item_val = df_item_val
         self.need_transform = need_transform
         self.item_feat_domination = item_feat_domination
@@ -41,7 +36,6 @@ class Evaluator_Feat():
 
             is_end = np.zeros([num_tests], dtype=bool)
 
-            # indices = results["idxs"]
 
             while not all(is_end):
                 acts = buffer.obs_next[indices][:, 1]  # buffer.act[indices]
@@ -83,7 +77,6 @@ class Evaluator_Coverage_Count():
         self.collector_dict = test_collector_set.collector_dict
         self.num_items = test_collector_set.env.get_env_attr("mat")[0].shape[1]
 
-        # self.df_item_val = df_item_val
         self.need_transform = need_transform
 
     def on_epoch_begin(self, epoch):
@@ -104,7 +97,6 @@ class Evaluator_Coverage_Count():
             res = {}
             while any(live_ind):
                 acts = buffer.obs_next[inds][:, 1]  # acts = buffer[inds].act
-                # print(acts)
                 all_acts.extend(acts)
 
                 live_ind = buffer.prev(inds) != inds
@@ -134,8 +126,6 @@ class Evaluator_User_Experience():
         self.lbe_item = lbe_item
 
         self.df_item_val = df_item_val
-        # self.item_similarity = test_collector_set.env.get_env_attr("df_similarity_small")[0]
-        # self.item_popularity = test_collector_set.env.get_env_attr("item_popularity")[0]
         self.item_similarity = item_similarity
         self.item_popularity = item_popularity
         
@@ -188,10 +178,6 @@ class Evaluator_User_Experience():
                     all_rews.append(rew_mat[i][live_arr])
                     all_acts_origin.append(act_mat[i][live_arr])
         
-            # if self.need_transform:
-            #     all_acts_origin = self.lbe_item.inverse_transform(all_acts)
-            # else:
-            #     all_acts_origin = all_acts
 
             return all_acts_origin, all_rews, buffer.obs[indices][:, 0]
 
@@ -200,14 +186,11 @@ class Evaluator_User_Experience():
             res = {}
             all_div = []
             all_nov = []
-            # all_ser = []
             for item_list, rew_list, user in zip(actions, rews, users):
                 all_div.append(get_diversity(item_list, self.item_similarity))
                 all_nov.append(get_novelty(item_list, self.item_popularity))
-                # all_ser.append(get_serendipity(item_list, rew_list, user))
             res["Diversity"] = np.array(all_div).mean()
             res["Novelty"] = np.array(all_nov).mean()
-            # res["ser"] = np.array(all_ser).mean()
             return res
 
         results_all = {}
@@ -227,7 +210,6 @@ def save_model_fn(epoch, policy, model_save_path, optim, state_tracker, is_save=
     if not is_save:
         return
     model_save_path = model_save_path[:-3] + "-e{}".format(epoch) + model_save_path[-3:]
-    # torch.save(model.state_dict(), model_save_path)
     torch.save({
         'policy': policy.state_dict(),
         'optim_RL': optim[0].state_dict(),

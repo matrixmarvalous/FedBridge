@@ -8,7 +8,6 @@ from torch.distributions import Categorical
 from torch.distributions.kl import kl_divergence
 
 
-
 from tianshou.data import Batch, ReplayBuffer, to_torch_as
 from tianshou.policy import PGPolicy
 from tianshou.utils.net.common import ActorCritic
@@ -66,19 +65,15 @@ class BridgeA2CPolicy(PGPolicy):
         max_grad_norm: Optional[float] = None,
         gae_lambda: float = 0.95,
         max_batchsize: int = 256,
-        ####
         actor_bridge: Optional[torch.nn.Module] = None,
         optim_bridge: Optional[torch.optim.Optimizer] = None,
         lambda_kl: float = 0.05,
-        ####
         **kwargs: Any
     ) -> None:
         super().__init__(actor, optim, dist_fn, state_tracker=state_tracker, **kwargs)
-        ####
         self.actor_bridge = actor_bridge
         self.optim_bridge = optim_bridge
         self.lambda_kl = lambda_kl
-        ####
         self.critic = critic
         assert 0.0 <= gae_lambda <= 1.0, "GAE lambda should be in [0, 1]."
         self._lambda = gae_lambda
@@ -134,68 +129,28 @@ class BridgeA2CPolicy(PGPolicy):
         batch.adv = to_torch_as(advantages, batch.v_s)
         return batch
 
-#     def learn(  # type: ignore
-#         self, batch: Batch, batch_size: int, repeat: int, **kwargs: Any
-#     ) -> Dict[str, List[float]]:
-#         losses, actor_losses, vf_losses, ent_losses = [], [], [], []
-#         optim_RL, optim_state = self.optim
-#         for _ in range(repeat):
-#             for minibatch in batch.split(batch_size, merge_last=True):
-#                 # calculate loss for actor
-#                 dist = self(minibatch, self._buffer, indices=minibatch.indices, is_obs=True).dist
-#                 log_prob = dist.log_prob(minibatch.act)
-#                 log_prob = log_prob.reshape(len(minibatch.adv), -1).transpose(0, 1)
-#                 actor_loss = -(log_prob * minibatch.adv).mean()
-#                 # calculate loss for critic
-#                 obs_emb = self.state_tracker(self._buffer, minibatch.indices, is_obs=True)
-#                 value = self.critic(obs_emb).flatten()
-#                 vf_loss = F.mse_loss(minibatch.returns, value)
-#                 # calculate regularization and overall loss
-#                 ent_loss = dist.entropy().mean()
-#                 loss = actor_loss + self._weight_vf * vf_loss \
-#                     - self._weight_ent * ent_loss
-#                 optim_RL.zero_grad()
-#                 optim_state.zero_grad()
-#                 loss.backward()
-#                 if self._grad_norm:  # clip large gradient
-#                     nn.utils.clip_grad_norm_(
-#                         self._actor_critic.parameters(), max_norm=self._grad_norm
-#                     )
-#                 optim_RL.step()
-#                 optim_state.step()
 
-#                 actor_losses.append(actor_loss.item())
-#                 vf_losses.append(vf_loss.item())
-#                 ent_losses.append(ent_loss.item())
-#                 losses.append(loss.item())
-
-#         return {
-#             "loss": losses,
-#             "loss/actor": actor_losses,
-#             "loss/vf": vf_losses,
-#             "loss/ent": ent_losses,
-#         }
     def learn(  # type: ignore
         self, batch: Batch, batch_size: int, repeat: int, **kwargs: Any
     ) -> Dict[str, List[float]]:
         losses, actor_losses, vf_losses, ent_losses = [], [], [], []
         optim_RL, optim_state = self.optim
-        optim_bridge = self.optim_bridge  # ★ 代理策略的优化器
+        optim_bridge = self.optim_bridge
 
         for _ in range(repeat):
             for minibatch in batch.split(batch_size, merge_last=True):
-                # ========= 主策略（private / personal）更新 =========
-                # 1) 主策略分布 π
+
+
                 out = self(minibatch, self._buffer, indices=minibatch.indices, is_obs=True)
                 dist = out.dist
                 log_prob = dist.log_prob(minibatch.act)
                 log_prob = log_prob.reshape(len(minibatch.adv), -1).transpose(0, 1)
 
-                # 2) 代理策略分布 π_bridge（teacher for private 的反向 KL，用 no_grad）
+
                 with torch.no_grad():
                     obs_emb_t = self.state_tracker(self._buffer, minibatch.indices, is_obs=True)
                     out_bridge_t = self.actor_bridge(obs_emb_t)
-                    if isinstance(out_bridge_t, tuple):  # 连续动作：直接传给 dist_fn
+                    if isinstance(out_bridge_t, tuple):
                         dist_bridge_t = self.dist_fn(*out_bridge_t)
                     else:
                         logits_bridge_t = out_bridge_t
@@ -203,7 +158,7 @@ class BridgeA2CPolicy(PGPolicy):
                             logits_bridge_t = logits_bridge_t * minibatch.mask
                         dist_bridge_t = self.dist_fn(logits_bridge_t)
 
-                # 3) A2C 主策略损失 + 熵正则 + 值函数损失 + 蒸馏 KL(π || π_bridge)
+
                 actor_loss = -(log_prob * minibatch.adv).mean()
 
                 obs_emb = self.state_tracker(self._buffer, minibatch.indices, is_obs=True)
@@ -229,12 +184,11 @@ class BridgeA2CPolicy(PGPolicy):
                 ent_losses.append(ent_loss.item())
                 losses.append(loss.item())
 
-                # ========= 代理策略（bridge）更新 =========
-                # teacher：当前主策略 π（stop-grad）
+
                 with torch.no_grad():
                     dist_priv_teacher = self(minibatch, self._buffer, indices=minibatch.indices, is_obs=True).dist
 
-                # 学生：π_bridge（可训练）
+
                 obs_emb_p = self.state_tracker(self._buffer, minibatch.indices, is_obs=True)
                 out_bridge = self.actor_bridge(obs_emb_p, state=None, info=minibatch.info)
                 if isinstance(out_bridge, tuple):
@@ -250,7 +204,7 @@ class BridgeA2CPolicy(PGPolicy):
                 ent_loss_bridge = dist_bridge.entropy().mean()
                 kl_bridge = kl_divergence(dist_bridge, dist_priv_teacher).mean()  # π_bridge || π_teacher
 
-                # 用 A2C 形式训练代理策略：-E[log π_bridge(a|s) * adv] - βH + λ KL
+
                 loss_bridge = (-(log_prob_bridge * minibatch.adv).mean()
                               - self._weight_ent * ent_loss_bridge
                               + self.lambda_kl * kl_bridge)

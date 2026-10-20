@@ -11,7 +11,6 @@ from src.core.envs.KuaiRand_Pure.preprocessing_kuairand import get_df_data
 sys.path.extend([".", "./src", "./src/DeepCTR-Torch", "./src/tianshou"])
 from src.core.envs.BaseData import BaseData, get_distance_mat
 
-# ROOTPATH = os.path.dirname(__file__)
 ROOTPATH = "data/KuaiRand_Pure"
 DATAPATH = os.path.join(ROOTPATH, "data_raw")
 PRODATAPATH = os.path.join(ROOTPATH, "data_processed")
@@ -44,14 +43,7 @@ class KuaiRandData(BaseData):
                               usecols=['user_id', 'item_id', 'time_ms', 'is_like', 'is_click', 'long_view',
                                        'duration_normed', "watch_ratio_normed"])
 
-        # df_data['watch_ratio'] = df_data["play_time_ms"] / df_data["duration_ms"]
-        # df_data.loc[df_data['watch_ratio'].isin([np.inf, np.nan]), 'watch_ratio'] = 0
-        # df_data.loc[df_data['watch_ratio'] > 5, 'watch_ratio'] = 5
-        # df_data['duration_01'] = df_data['duration_ms'] / 1e5
-        # df_data.rename(columns={"time_ms": "timestamp"}, inplace=True)
-        # df_data["timestamp"] /= 1e3
 
-        # load feature info
         list_feat, df_feat = KuaiRandData.load_category()
         df_data = df_data.join(df_feat, on=['item_id'], how="left")
 
@@ -135,7 +127,6 @@ class KuaiRandData(BaseData):
             df_user[col] = df_user[col].map(lambda x: chr(0) if x == 'UNKNOWN' else x)
             lbe = LabelEncoder()
             df_user[col] = lbe.fit_transform(df_user[col])
-            # print(lbe.classes_)
             if chr(0) in lbe.classes_.tolist() or -124 in lbe.classes_.tolist():
                 assert lbe.classes_[0] in {-124, chr(0)}
                 # do not add one
@@ -145,7 +136,6 @@ class KuaiRandData(BaseData):
             df_user.loc[df_user[col].isna(), col] = -124
             lbe = LabelEncoder()
             df_user[col] = lbe.fit_transform(df_user[col])
-            # print(lbe.classes_)
             if chr(0) in lbe.classes_.tolist() or -124 in lbe.classes_.tolist():
                 assert lbe.classes_[0] in {-124, chr(0)}
                 # do not add one

@@ -141,7 +141,6 @@ class REDQPolicy(DDPGPolicy):
         )
 
     def _target_q(self, batch, buffer: ReplayBuffer, indices: np.ndarray) -> torch.Tensor:
-        # batch = buffer[indices]  # batch.obs: s_{t+n}
         obs_next_result = self(batch, input="obs_next")
         a_ = obs_next_result.act
         sample_ensemble_idx = np.random.choice(

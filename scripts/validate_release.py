@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-08-21: one-command, fail-fast validation entry point for
-# the isolated FedBridge release. Intended caller: repository users from any
-# working directory; original experiment trees are read only.
-# Codex-modified 2026-08-23: validate fixed-method/seed Siyuan job generation.
 """Validate the public FedBridge release without launching full experiments.
 
 The default run performs packaging, unit, import, command-construction, asset
@@ -737,10 +733,6 @@ def validate_generated_siyuan_bundle(job_root, expected_jobs, expected_cells):
     return jobs
 
 
-# Codex-added 2026-08-25: verify the fast full-budget layout requested for
-# Siyuan: one condition per script and one independent Slurm submission per
-# condition cell. The previous validator is backed up under
-# .codex_hpc/backups/fedbridge_release/20260825_153941/.
 def validate_parallel_siyuan_bundle(job_root, expected_jobs, expected_cells):
     jobs = validate_generated_siyuan_bundle(
         job_root, expected_jobs, expected_cells
@@ -998,9 +990,6 @@ def main(argv=None):
                 recommender_env,
             )
 
-        # Codex-added 2026-08-25: construct and syntax-check the 30-way
-        # full-budget parallel bundle without submitting compute from this
-        # lightweight release validator.
         parallel_job_root = work_root / "siyuan-parallel-full-generation"
         parallel_output_root = work_root / "siyuan-parallel-full-results"
         parallel_command = [

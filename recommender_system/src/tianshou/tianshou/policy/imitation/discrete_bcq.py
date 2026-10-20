@@ -76,8 +76,6 @@ class DiscreteBCQPolicy(DQNPolicy):
         return self
 
     def _target_q(self, batch, buffer: ReplayBuffer, indices: np.ndarray) -> torch.Tensor:
-        # batch = buffer[indices]  # batch.obs_next: s_{t+n}
-        # target_Q = Q_old(s_, argmax(Q_new(s_, *)))
         act = self(batch, buffer, indices=indices, input="obs_next").act
         obs_next_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=False, batch=batch)  # is_train is True by default
         target_q, _ = self.model_old(obs_next_emb)
@@ -96,7 +94,6 @@ class DiscreteBCQPolicy(DQNPolicy):
         use_batch_in_statetracker=False,
         **kwargs: Any,
     ) -> Batch:
-        # obs = batch[input]
         is_obs = True if input == "obs" else False
         obs_emb = self.state_tracker(buffer=buffer, indices=indices, is_obs=is_obs, batch=batch, is_train=is_train, use_batch_in_statetracker=use_batch_in_statetracker)
         q_value, state = self.model(obs_emb, state=state, info=batch.info)
@@ -115,7 +112,6 @@ class DiscreteBCQPolicy(DQNPolicy):
         ratio = imitation_logits - imitation_logits.max(dim=-1, keepdim=True).values
         mask = (ratio < self._log_tau).float()
 
-        # act = ((q_value - np.inf * mask) * batch.mask).argmax(dim=-1)
         act = (q_value - np.inf * mask).argmax(dim=-1)
 
         return Batch(

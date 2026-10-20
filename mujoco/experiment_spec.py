@@ -1,8 +1,4 @@
 #!/usr/bin/env python3
-# Codex-added 2026-07-23: single source of truth for the audited experiment matrix.
-# Codex-modified 2026-08-14: make the copied publication configuration portable
-# and remove the private paper-seed matrix while preserving experiment logic.
-# Codex-modified 2026-08-18: expose the algorithms directory with final naming.
 from __future__ import annotations
 
 from pathlib import Path

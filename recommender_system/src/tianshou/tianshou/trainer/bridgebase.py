@@ -7,9 +7,6 @@ import numpy as np
 import tqdm
 import torch
 
-# Codex-modified 2026-08-18: keep the canonical Bridge trainer behavior aligned
-# with the pre-release implementation while normalizing public identifiers.
-
 
 from tianshou.data import AsyncCollector, Collector, ReplayBuffer
 from tianshou.policy import BasePolicy
@@ -150,8 +147,8 @@ class BridgeBaseTrainer(ABC):
         comm: Any = None,                     # MPI communicator
         rank: int = 0,
         world_size: int = 1,
-        comm_times_per_epoch: int = 10,               # 更新多少次后通信一次
-        rota: Optional[list[int]] = None,     # 旋转拓扑
+        comm_times_per_epoch: int = 10,
+        rota: Optional[list[int]] = None,
         verbose_sync: bool = True,
         episode_per_collect: Optional[int] = None,
         train_fn: Optional[Callable[[int, int], None]] = None,
@@ -200,7 +197,7 @@ class BridgeBaseTrainer(ABC):
         self.comm           = comm
         self.rank           = rank
         self.world_size     = world_size
-        self.comm_times_per_epoch  = comm_times_per_epoch        # 安全起见
+        self.comm_times_per_epoch  = comm_times_per_epoch
         self._comm_idx = 0
         self.rota           = rota if rota is not None else [1]
         self.verbose_sync   = verbose_sync
@@ -234,13 +231,12 @@ class BridgeBaseTrainer(ABC):
 
         self.save_model_fn = save_model_fn
 
-        # 增加有关federated learning参数
-        self._update_cnt = 0              # 计数每次 policy 更新
+
+        self._update_cnt = 0
         self.comm_time = 0.0
         
         self.lambda_kl_init = float(self.policy.lambda_kl)
         self.lambda_kl_end = float(self.lambda_kl_init / 5)
-
 
 
     def reset(self) -> None:
@@ -288,15 +284,6 @@ class BridgeBaseTrainer(ABC):
         self.epoch += 1
         self.iter_num += 1
         
-        # if hasattr(self.policy, "lambda_kl"):
-        #     if self.epoch % 10 == 0:  # 每 10 个 epoch 衰减一次
-        #         total_steps = max(1, self.max_epoch // 10)
-        #         decay_amount = (self.lambda_kl_init - self.lambda_kl_end) / total_steps
-        #         new_val = self.policy.lambda_kl - decay_amount
-        #         # 保证不低于终点
-        #         self.policy.lambda_kl = float(new_val)
-
-
 
         if self.iter_num > 1:
 
@@ -323,37 +310,13 @@ class BridgeBaseTrainer(ABC):
         for callback in callbacks:
             callback.on_epoch_begin(self.epoch)
 
-        # 本 epoch 开始重置阈值计数
+
         if self.world_size > 1 and self.comm_times_per_epoch > 0:
             assert self.step_per_epoch and self.step_per_epoch > 0, \
                 "使用 comm_times_per_epoch 时必须设置正整数的 step_per_epoch"
             self._comm_idx = 0
 
-        # # perform n step_per_epoch
-        # with progress(
-        #     total=self.step_per_epoch, desc=f"Epoch #{self.epoch}", **tqdm_config
-        # ) as t:
-        #     while t.n < t.total and not self.stop_fn_flag:
-        #         data: Dict[str, Any] = dict()
-        #         result: Dict[str, Any] = dict()
-        #         if self.train_collector is not None:
-        #             data, result, self.stop_fn_flag = self.train_step()
-        #             t.update(result["n/st"])
-        #             if self.stop_fn_flag:
-        #                 t.set_postfix(**data)
-        #                 break
-        #         else:
-        #             assert self.buffer, "No train_collector or buffer specified"
-        #             result["n/ep"] = len(self.buffer)
-        #             result["n/st"] = int(self.gradient_step)
-        #             t.update()
 
-        #         self.policy_update_fn(data, result)
-        #         t.set_postfix(**data)
-
-        #     if t.n <= t.total and not self.stop_fn_flag:
-        #         t.update()
-                # perform n step_per_epoch
         with progress(
             total=self.step_per_epoch, desc=f"Rank #{self.rank}  Epoch #{self.epoch}", **tqdm_config
         ) as t:
@@ -372,27 +335,27 @@ class BridgeBaseTrainer(ABC):
                     result["n/st"] = int(self.gradient_step)
                     t.update()
 
-                # === PPO 更新 ===
+
                 self.policy_update_fn(data, result)
 
-                # === 🔥 固定每个 epoch 通信 K 次：阈值指标触发 ===
+
                 if self.world_size > 1 and self.comm_times_per_epoch > 0:
-                    # 已跨过的阈值数：floor(K * t.n / step_per_epoch)，上限为 K
+
                     crossed = int((t.n * self.comm_times_per_epoch) // t.total)
                     if crossed > self.comm_times_per_epoch:
                         crossed = self.comm_times_per_epoch
 
-                    # 可能一次 collect 跨越多个阈值，用 while 补齐每一轮通信
+
                     while self._comm_idx < crossed:
                         round_id = self._comm_idx  # 0-based
-                        # —— 打包 bridge 参数到一维向量 ——
+
                         send_buf = np.concatenate([
                             p.data.detach().cpu().numpy().ravel()
                             for p in self.policy.actor_bridge.parameters()
                         ])
                         recv_buf = np.empty_like(send_buf)
 
-                        # —— Ring 发送接收（保持你原逻辑）——
+
                         self.comm.Barrier()
                         t0 = time.time()
                         hop = self.rota[round_id % len(self.rota)]
@@ -401,9 +364,7 @@ class BridgeBaseTrainer(ABC):
                         self.comm.Sendrecv(send_buf, dest=dst, recvbuf=recv_buf, source=src)
                         self.comm_time += time.time() - t0
 
-                        # avg_buf = 0.5 * (send_buf + recv_buf)
 
-                        # —— 写回参数 —— 
                         idx = 0
                         for p in self.policy.actor_bridge.parameters():
                             n = p.numel()
@@ -418,41 +379,7 @@ class BridgeBaseTrainer(ABC):
 
                         self._comm_idx += 1
 
-                # # === 🔥 MPI 通信逻辑 ===
-                # self._update_cnt += 1
-                # if self.world_size > 1 and self._update_cnt % self.comm_interval == 0:
-                #     round_id = self._update_cnt // self.comm_interval - 1
 
-                #     # 打包 bridge 网络参数
-                #     send_buf = np.concatenate([
-                #         p.data.cpu().numpy().ravel()
-                #         for p in self.policy.actor_bridge.parameters()
-                #     ])
-                #     recv_buf = np.empty_like(send_buf)
-
-                #     self.comm.Barrier()
-                #     t0 = time.time()
-                #     src = (self.rank - self.rota[round_id % len(self.rota)]) % self.world_size
-                #     dst = (self.rank + self.rota[round_id % len(self.rota)]) % self.world_size
-                #     self.comm.Sendrecv(send_buf, dest=dst, recvbuf=recv_buf, source=src)
-                #     self.comm_time += time.time() - t0
-
-                #     # 写回参数到 bridge 网络
-                #     idx = 0
-                #     for p in self.policy.actor_bridge.parameters():
-                #         n = p.numel()
-                #         p.data.copy_(torch.from_numpy(recv_buf[idx:idx+n]).view_as(p))
-                #         idx += n
-
-                #     # 同步 old 网络
-                #     # self.policy.actor.load_state_dict(
-                #     #     self.policy.actor.state_dict()
-                #     # )
-
-                #     if self.verbose_sync and self.rank == 0:
-                #         print(f"[Comm-Round {round_id+1}] bridge synced", flush=True)
-
-                # === 更新进度条 ===
                 t.set_postfix(**data)
 
             if t.n <= t.total and not self.stop_fn_flag:
@@ -520,7 +447,6 @@ class BridgeBaseTrainer(ABC):
                 f"Epoch #{self.epoch}: test_reward: {rew:.6f} ± {rew_std:.6f},"
                 f" best_reward: {self.best_reward:.6f} ± "
                 f"{self.best_reward_std:.6f} in #{self.best_epoch}",
-                # flush=True
             )
         if not self.is_run:
             test_stat = {

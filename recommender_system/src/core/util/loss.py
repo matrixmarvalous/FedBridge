@@ -114,7 +114,6 @@ def loss_pointwise(y, y_deepfm_pos, y_deepfm_neg, score, alpha_u=None, beta_i=No
 def loss_pairwise(y, y_deepfm_pos, y_deepfm_neg, score, alpha_u=None, beta_i=None, args=None, log_var=None,
                   log_var_neg=None):
     y_weighted, loss_ab = process_logit(y_deepfm_pos, score, alpha_u=alpha_u, beta_i=beta_i, args=args)
-    # loss_y = ((y_exposure - y) ** 2).sum()
 
     if log_var is not None:
         inv_var = torch.exp(-log_var)

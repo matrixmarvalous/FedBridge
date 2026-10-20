@@ -71,9 +71,6 @@ def to_torch_as(x: Any, y: torch.Tensor) -> Union[Batch, torch.Tensor]:
     return to_torch(x, dtype=y.dtype, device=y.device)
 
 
-# Codex-modified 2026-08-18: clarify the generic serialization terminology.
-# Note: object is used as a stand-in for objects that can be pickled
-# Note: mypy does not support cyclic definition currently
 Hdf5ConvertibleValues = Union[int, float, Batch, np.ndarray, torch.Tensor, object,
                               "Hdf5ConvertibleType"]
 

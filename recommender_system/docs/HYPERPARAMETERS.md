@@ -1,8 +1,4 @@
 # EasyRL4Rec reference configuration
-
-<!-- Codex-added 2026-08-14: record the paper-facing configuration without disclosing author seed values. -->
-<!-- Codex-modified 2026-08-18: use the final Bridge terminology. -->
-
 This file records the configuration used for the MovieLens-1M experiments. The executable source of truth is `experiment_spec.py`; command-line arguments shown by `launcher.py --dry-run` should agree with this document.
 
 ## Seed policy

@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 """
 Author:
     Weichen Shen,weichenswc@163.com
